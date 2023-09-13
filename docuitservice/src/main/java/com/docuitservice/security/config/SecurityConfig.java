@@ -1,0 +1,70 @@
+package com.docuitservice.security.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.docuitservice.service.UserInfoUserDetailsService;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+	@Autowired
+	private JwtAuthFilter authFilter;
+
+	@Bean
+	public UserDetailsService userDetailsService() {
+		return new UserInfoUserDetailsService();
+	}
+	
+		
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		return http.csrf().disable().cors().and().authorizeHttpRequests()
+				.requestMatchers("/auth/signUp", "/auth/verifyEmail", "/auth/resendCode", "/auth/pinGeneration",
+						"/auth/verifyMobileOtp", "/auth/login", "/auth/generateToken", "/auth/refreshToken",
+						"/auth/forgotPin", "/auth/verifyPin", "/auth/changePin", "/auth/adminLogin")
+				.permitAll().requestMatchers("/auth/*").authenticated().requestMatchers("/family/*").authenticated()
+				.requestMatchers("/category/*").authenticated().requestMatchers("/dashboard/*").authenticated().requestMatchers("/document/*").authenticated()
+				.requestMatchers("/swagger-resources/**", "/webjars/**", "/swagger-ui.html", "/v2/**").permitAll()
+				.requestMatchers("/api-docs/**").permitAll().requestMatchers("/actuator/health/**").permitAll().and()
+				.authorizeHttpRequests().and().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+				.authenticationProvider(authenticationProvider())
+				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
+
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public AuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+		authenticationProvider.setUserDetailsService(userDetailsService());
+		authenticationProvider.setPasswordEncoder(passwordEncoder());
+		return authenticationProvider;
+	}
+
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
+
+}
