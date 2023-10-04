@@ -80,4 +80,6 @@ public class ErrorConstants {
 	public static final String DOCUMENT_SIZE_IS_INVALID = "Document size is invalid";
 	public static final String DOCUMENT_IS_INVALID = "Document id is invalid or null";
 	public static final String MEMBER_ALREADY_RESPONDED = "Member already responded to Inivte";
+	public static final String DOCUMENT_TYPE_IS_NULL= "Document Type is null";
+	public static final String EXTERNAL_INVITE_IS_INVALID= "External invite id is invalid or null";
 }

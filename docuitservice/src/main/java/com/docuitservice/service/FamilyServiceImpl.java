@@ -1,6 +1,7 @@
 package com.docuitservice.service;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +16,17 @@ import org.springframework.util.StringUtils;
 
 import com.docuitservice.exception.BusinessException;
 import com.docuitservice.helper.ResponseHelper;
+import com.docuitservice.model.ExternalInvite;
 import com.docuitservice.model.Family;
 import com.docuitservice.model.Member;
 import com.docuitservice.model.User;
+import com.docuitservice.repository.ExternalInviteRepository;
 import com.docuitservice.repository.FamilyRepository;
 import com.docuitservice.repository.MemberRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.EditFamilyRequest;
+import com.docuitservice.request.ExternalInviteAcceptRequest;
+import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
@@ -45,6 +50,12 @@ public class FamilyServiceImpl implements FamilyService {
 
 	@Autowired
 	private MemberRepository memberRepository;
+	
+	@Autowired
+	private ExternalInviteRepository externalInviteRepository;
+	
+	@Autowired
+	private UserService userService;
 
 	@Override
 	public Response addFamily(@Valid FamilyRequest familyRequest) throws Exception {
@@ -237,6 +248,164 @@ public class FamilyServiceImpl implements FamilyService {
 		return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITE_RESPONDED, "", 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
+	
+	@Override
+	public Response getFamilyMembersList(String familyId) {
+		// TODO Auto-generated method stub
+		Family family=null;
+		List<Member> members = new ArrayList<>();
+		if(!StringUtils.hasLength(familyId)) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		family = familyRepository.findById(familyId);
+		if(null ==family) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		members = memberRepository.findByFamilyAndInviteStatus(family,DockItConstants.INVITE_ACCEPTED);
+		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_MEMBERS_LIST, members, 200,
+				DockItConstants.RESPONSE_SUCCESS);
+	}
+	
+	
+
+	@Override
+	public Response getUsersPendingInvites(String userId) {
+		// TODO Auto-generated method stub
+		User user = null;
+		List<Member> members = new ArrayList<>();
+		if(StringUtils.hasText(userId)) {
+			user = userRepository.findById(userId);
+			if(null ==user) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}else {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		members = memberRepository.findByUserAndInviteStatus(user,DockItConstants.INVITE_REQUESTED);
+		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_MEMBERS_LIST, members, 200,
+				DockItConstants.RESPONSE_SUCCESS);
+	}
+
+	@Override
+	public Response externalInvite(ExternalInviteRequest externalInviteRequest) throws Exception {
+		// TODO Auto-generated method stub
+		Family family = null;
+		User user = null;
+		Date currentTimeStamp = new Date(System.currentTimeMillis());
+		if(!StringUtils.hasText(externalInviteRequest.getEmail()) && !StringUtils.hasText(externalInviteRequest.getPhone())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (StringUtils.hasText(externalInviteRequest.getPhone()) && ! Util.isValidPhoneNumberFormat(externalInviteRequest.getPhone())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_PHONE_NUMBER,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (StringUtils.hasText(externalInviteRequest.getEmail()) && !Util.isValidEmailIdFormat(externalInviteRequest.getEmail())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_EMAIL_ID,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if(null !=externalInviteRequest.getFamilyId()) {
+			family = familyRepository.findById(externalInviteRequest.getFamilyId());
+			if(null == family) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}
+		if(null !=externalInviteRequest.getInvitedBy()) {
+			user = userRepository.findById(externalInviteRequest.getInvitedBy());
+			if(null == user) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}
+		
+		ExternalInvite externalInvite = new ExternalInvite();
+		externalInvite.setId(UUID.randomUUID().toString());
+		if(StringUtils.hasText(externalInviteRequest.getPhone())) {
+		externalInvite.setPhone(externalInviteRequest.getPhone());
+		}
+		if(StringUtils.hasText(externalInviteRequest.getEmail())) {
+			externalInvite.setEmail(externalInviteRequest.getEmail());
+		}
+		externalInvite.setFamily(family);
+		externalInvite.setStatus(true);
+		externalInvite.setUser(user);
+		externalInvite.setCreatedAt(currentTimeStamp);
+		externalInvite.setUpdatedAt(currentTimeStamp);
+		externalInviteRepository.save(externalInvite);
+		userService.sendEmailInvite(externalInvite.getEmail(), user.getName());
+		if (externalInvite.getPhone() != null && !externalInvite.getPhone().isEmpty()) {
+			userService.sendSmsInvite(externalInvite.getPhone(), user.getName());
+		}
+		return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
+				DockItConstants.RESPONSE_SUCCESS);
+	}
+	
+	@Override
+	public Response getExternalInvite(ExternalInviteRequest externalInviteRequest) throws Exception {
+		List<ExternalInvite> externalInvites = new ArrayList<ExternalInvite>();
+		
+		if(StringUtils.hasText(externalInviteRequest.getPhone())){
+			externalInvites = externalInviteRepository.findByPhoneAndStatus(externalInviteRequest.getPhone(),true);
+			}
+			if(StringUtils.hasText(externalInviteRequest.getEmail())){
+				externalInvites = externalInviteRepository.findByEmailAndStatus(externalInviteRequest.getEmail(),true);
+			}
+			return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITE_RESPONDED, externalInvites, 200,
+					DockItConstants.RESPONSE_SUCCESS);
+	}
+
+	@Override
+	public Response externalInviteAccept(ExternalInviteAcceptRequest externalInviteAcceptRequest) {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+				Family family = null;
+				User user = null;
+				Optional<ExternalInvite> externalInviteOpt = null;
+				ExternalInvite externalInvite = null;
+				Date currentTimeStamp = new Date(System.currentTimeMillis());
+				if(!StringUtils.hasText(externalInviteAcceptRequest.getExternalInviteId())) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				
+				if(StringUtils.hasText(externalInviteAcceptRequest.getExternalInviteId())) {
+					externalInviteOpt = externalInviteRepository.findById(externalInviteAcceptRequest.getExternalInviteId());
+				}
+				if(externalInviteOpt.isEmpty()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.EXTERNAL_INVITE_IS_INVALID,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				if(null !=externalInviteAcceptRequest.getUserId()) {
+					user = userRepository.findById(externalInviteAcceptRequest.getUserId());
+					if(null == user) {
+						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
+								ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+					}
+				}
+				externalInvite = externalInviteOpt.get();
+				externalInvite.setStatus(false);
+				externalInvite.setUpdatedAt(currentTimeStamp);
+				externalInviteRepository.save(externalInvite);
+				
+				Member member = new Member();
+				member.setId(UUID.randomUUID().toString());
+				member.setFamily(externalInvite.getFamily());
+				member.setUser(user);
+				member.setInviteStatus(DockItConstants.INVITE_REQUESTED);
+				member.setStatus(true);
+				member.setCreatedAt(currentTimeStamp);
+				member.setUpdatedAt(currentTimeStamp);
+				memberRepository.save(member);
+				
+				return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
+						DockItConstants.RESPONSE_SUCCESS);
+	}
+	
 	
 
 }

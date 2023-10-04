@@ -1,7 +1,9 @@
 package com.docuitservice.service;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,8 +17,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.docuitservice.exception.BusinessException;
 import com.docuitservice.helper.ResponseHelper;
+import com.docuitservice.model.ExternalInvite;
 import com.docuitservice.model.User;
+import com.docuitservice.repository.ExternalInviteRepository;
 import com.docuitservice.repository.UserRepository;
+import com.docuitservice.request.ExternalInviteAcceptRequest;
+import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.LoginRequest;
 import com.docuitservice.request.SignUpRequest;
 import com.docuitservice.request.UpdateProfileRequest;
@@ -43,6 +49,12 @@ public class AuthServiceImpl implements AuthService {
 	
 	@Autowired
 	private BCryptPasswordEncoder bcryptEncoder;	
+	
+	@Autowired
+	private FamilyService familyService;
+	
+	@Autowired
+	private ExternalInviteRepository externalInviteRepository;
 
 	@Override
 	public Response signUpUser(SignUpRequest signUpRequest) throws Exception {
@@ -88,6 +100,7 @@ public class AuthServiceImpl implements AuthService {
 			if (user.getPhone() != null && !user.getPhone().isEmpty()) {
 				userService.sendVerificationOTP(user.getPhone(), user.getOtp());
 			}
+			validateExternalInviteAndAccept(user);
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_REQUEST,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -97,6 +110,38 @@ public class AuthServiceImpl implements AuthService {
 				DockItConstants.RESPONSE_SUCCESS);
 	}
 
+	/**
+	 * @param user
+	 */
+	private void validateExternalInviteAndAccept(User user) {
+		ExternalInviteRequest externalInviteRequest =  new ExternalInviteRequest();
+		if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+		externalInviteRequest.setPhone(user.getPhone());
+		}
+		if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+			externalInviteRequest.setEmail(user.getEmail());
+		}
+		List<ExternalInvite> externalInvites = new ArrayList<ExternalInvite>();
+		String inviteId = null;
+		if(user.getPhone() != null && !user.getPhone().isEmpty()){
+			externalInvites = externalInviteRepository.findByPhoneAndStatus(externalInviteRequest.getPhone(),true);
+			}
+		if(user.getEmail() != null && !user.getEmail().isEmpty()){
+			externalInvites = externalInviteRepository.findByEmailAndStatus(externalInviteRequest.getEmail(),true);
+		}
+		if(!externalInvites.isEmpty() && externalInvites.size()>0) {
+			ExternalInvite externalInvite = externalInvites.get(0);
+			inviteId = externalInvite.getId();
+		}
+		if(StringUtils.hasText(inviteId) && StringUtils.hasText(user.getId())) {
+			ExternalInviteAcceptRequest	externalInviteAcceptRequest =  new ExternalInviteAcceptRequest();
+			externalInviteAcceptRequest.setExternalInviteId(inviteId);
+			externalInviteAcceptRequest.setUserId(user.getId());
+			familyService.externalInviteAccept(externalInviteAcceptRequest);
+		}
+	}
+	
+	
 	private User createUser(SignUpRequest signUpRequest) {
 		User userDetails = userRepository.findByDeviceId(signUpRequest.getDeviceId());
 		User user = new User();

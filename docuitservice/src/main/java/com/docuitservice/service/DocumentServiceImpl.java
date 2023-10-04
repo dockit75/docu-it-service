@@ -36,6 +36,7 @@ import com.docuitservice.repository.FamilyRepository;
 import com.docuitservice.repository.MemberRepository;
 import com.docuitservice.repository.ShareRepository;
 import com.docuitservice.repository.UserRepository;
+import com.docuitservice.request.DocumentDetails;
 import com.docuitservice.request.SaveDocumentRequest;
 import com.docuitservice.request.ShareDocumentRequest;
 import com.docuitservice.response.DocumentResponse;
@@ -89,7 +90,8 @@ public class DocumentServiceImpl implements DocumentService{
 		logger.info("uploadDocument --->starts"+file.getOriginalFilename(),userId);
 		long filesize =  file.getSize();
 		String fileContentType = file.getContentType();
-		String filename = file.getOriginalFilename();
+		UUID uuid = UUID.randomUUID();
+		String filename = uuid+file.getOriginalFilename();
 		String documentPath="";
 		String documentUrl= null;
 		User user = null;
@@ -123,29 +125,36 @@ public class DocumentServiceImpl implements DocumentService{
 	
 	public Response saveDocumentDetails(SaveDocumentRequest saveDocumentRequest) throws IOException {
 		logger.info("saveDocumentDetails --->starts");
-		String documentName = saveDocumentRequest.getDocumentName();
-		String documentUrl=saveDocumentRequest.getDocumentUrl();
+		//String documentName = saveDocumentRequest.getDocumentName();
+		//String documentUrl=saveDocumentRequest.getDocumentUrl();
 		String categoryId = saveDocumentRequest.getCategoryId();
 		String familyId = saveDocumentRequest.getFamilyId();
 		//String documentType = saveDocumentRequest.getDocumentType();
 		String documentUploadedBy = saveDocumentRequest.getUploadedBy();
-		String documentSize = saveDocumentRequest.getDocumentSize();
+		//String documentSize = saveDocumentRequest.getDocumentSize();
 		List<String> sharedUsers = saveDocumentRequest.getSharedMembers();
 		
+		List<DocumentDetails> documentDetails = saveDocumentRequest.getDocumentDetails();
+		for(DocumentDetails documentDetail : documentDetails) {
+		String documentName = documentDetail.getDocumentName();
+		String documentUrl=documentDetail.getDocumentUrl();
+		String documentType = documentDetail.getDocumentType();
+		String documentSize = documentDetail.getDocumentSize();
 		User user =null;
 		Document doc =null;  
 		Family family = null;
 		Category category = null;
+		boolean memberMatch = false;
 		List<Member> sharedList = new ArrayList<>();
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		
 			if(!StringUtils.hasLength(documentName)) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_NAME_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}else if(documentName.length()>DockItConstants.DOCUMENT_NAME_LENGTH || !Util.isAlphaNumeric(documentName)){
+			}/*else if(documentName.length()>DockItConstants.DOCUMENT_NAME_LENGTH || !Util.isAlphaNumeric(documentName)){
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_NAME_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
+			}*/
 			if(!StringUtils.hasLength(documentUrl)) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_URL_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -158,6 +167,9 @@ public class DocumentServiceImpl implements DocumentService{
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}if(Long.valueOf(documentSize)<=0) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_SIZE_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}if(!StringUtils.hasLength(documentType)) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_TYPE_IS_NULL,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 			if(StringUtils.hasText(documentUploadedBy)) {
@@ -197,8 +209,10 @@ public class DocumentServiceImpl implements DocumentService{
 							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 				}
 				for(Member shareMember: sharedList) {
-					if(!shareMember.getFamily().getId().equalsIgnoreCase(family.getId())) {
-						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+					if(shareMember.getFamily().getId().equalsIgnoreCase(family.getId())) {
+						memberMatch = true;
+					}if(!memberMatch) {
+						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
 								ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 					}
 				}
@@ -206,7 +220,7 @@ public class DocumentServiceImpl implements DocumentService{
 				 Document docModel = new Document(); 
 				 docModel.setId(UUID.randomUUID().toString());
 				 docModel.setDocumentName(documentName);
-				 //docModel.setDocumentType(documentType);
+				 docModel.setDocumentType(documentType);
 				 docModel.setUrl(documentUrl);
 				 docModel.setCategory(category);
 				 docModel.setFamily(family);
@@ -216,6 +230,7 @@ public class DocumentServiceImpl implements DocumentService{
 				 docModel.setCreatedAt(currentTimeStamp);
 				 doc =  documentRepository.save(docModel);
 				 saveShareDetails(doc,sharedList,currentTimeStamp);
+		}
 				 logger.info("saveDocumentDetails --->End");
 				 return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_SAVED_SUCCESFULLY, "", 200,
 							DockItConstants.RESPONSE_SUCCESS);

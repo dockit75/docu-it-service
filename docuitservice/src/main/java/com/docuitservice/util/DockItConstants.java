@@ -66,9 +66,12 @@ public class DockItConstants {
 	public static final String INVITE_ACCEPTED = "Accepted";
 	public static final String INVITE_REJECTED = "rejected";
 	public static final String USER_INVITED_SUCCESSFULY = "User invited successfully";
-	public static final String USER_INVITE_RESPONDED = "User invite Responded";
+	public static final String USER_INVITE_RESPONDED = "User invite responded";
 	public static final String MOBILE_OTP_RESEND = "Verification otp sent successfully to your mobile number";
 	public static final String EMAIL_CODE_RESEND_STATUS = "EMAIL CODE RESEND";
 	public static final String MOBILE_OTP_RESEND_STATUS = "MOBILE OTP RESEND";
+	public static final String USER_INVITE_DETAILS = "User invite details";
+	public static final String FAMILY_MEMBERS_LIST = "Family members list";
+	public static final String INVITES_PENDING_LIST = "Invites pending";
 
 }

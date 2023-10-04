@@ -1,6 +1,8 @@
 package com.docuitservice.service;
 
 import com.docuitservice.request.EditFamilyRequest;
+import com.docuitservice.request.ExternalInviteAcceptRequest;
+import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
@@ -20,5 +22,13 @@ public interface FamilyService {
 	
 	Response familyMemberInviteAccept(FamilyMemberInviteAcceptedRequest familyMemberInviteAcceptedRequest)throws Exception;
 
+	Response externalInvite(ExternalInviteRequest externalInviteRequest)throws Exception;
 
+	Response externalInviteAccept(ExternalInviteAcceptRequest externalInviteAcceptRequest);
+
+	Response getExternalInvite(ExternalInviteRequest externalInviteRequest) throws Exception;
+
+	Response getFamilyMembersList(String familyId);
+
+	Response getUsersPendingInvites(String userId);
 }

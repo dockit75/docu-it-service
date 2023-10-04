@@ -37,6 +37,16 @@ public class UserServiceImpl implements UserService {
 
 	@Value("${sms.verifyOTP.template}")
 	private String verificationOTPTemplate;
+	
+	@Value("${mail.externalInvite.subject}")
+	private String externalInviteSubject;
+
+	@Value("${mail.externalInvite.template}")
+	private String externalInviteEmailTemplate;
+	
+	@Value("${sms.externalInvite.template}")
+	private String externalInviteSmsTemplate;
+	
 	@Override
 	public void sendVerificationCode(String email, String otp, String name) throws Exception {
 		logger.info("UserServiceImpl sendVerificationCode----starts---- email: {}, otp: {}, name: {}", email, otp,
@@ -77,4 +87,45 @@ public class UserServiceImpl implements UserService {
 		}
 		logger.info("UserServiceImpl sendVerificationOTP----ends----");
 	}
+	
+	@Override
+	public void sendEmailInvite(String email, String invitedBy) throws Exception {
+		logger.info("UserServiceImpl sendEmailInvite----starts---- email: {}, invitedBy: {}", email, invitedBy);
+		Map<String, Object> mailMap = new HashMap<>();
+		Map<String, Object> notificationMap = new HashMap<>();
+		mailMap.put("invitedBy", invitedBy);
+		Template mailTemplate = config.getTemplate(externalInviteEmailTemplate);
+		String mailTemplateHtml = FreeMarkerTemplateUtils.processTemplateIntoString(mailTemplate, mailMap);
+		notificationMap.put("userMail", email);
+		notificationMap.put("subject", externalInviteSubject);
+		notificationMap.put("html", mailTemplateHtml);
+		boolean isMailSent = notificationHelper.sendNotification(DockItConstants.NOTIFICATION_MAIL_TYPE,
+				notificationMap);
+		if (!isMailSent) {
+			throw new BusinessException(DockItConstants.RESPONSE_FAIL, DockItConstants.SERVER_ERROR,
+					DockItConstants.RESPONSE_EMPTY_DATA, 500);
+		}
+		logger.info("UserServiceImpl sendEmailInvite----ends----");
+	}
+
+	@Override
+	public void sendSmsInvite(String phone, String invitedBy) throws Exception {
+		logger.info("UserServiceImpl sendSmsInvite----starts----phone: {}, invitedBy: {}", phone, invitedBy);
+		Map<String, Object> smsMap = new HashMap<>();
+		smsMap.put("invitedBy", invitedBy);
+		Template smsTemplate = config.getTemplate(externalInviteSmsTemplate);
+		String message = FreeMarkerTemplateUtils.processTemplateIntoString(smsTemplate, smsMap);
+		Map<String, Object> notificationMap = new HashMap<>();
+		notificationMap.put("message", message);
+		notificationMap.put("phoneNumber", phone);
+		notificationMap.put("smsType", DockItConstants.SMS_TRANSCTION_TYPE);
+		boolean isSmsSent = notificationHelper.sendNotification(DockItConstants.NOTIFICATION_SMS_TYPE, notificationMap);
+		if (!isSmsSent) {
+			throw new BusinessException(DockItConstants.RESPONSE_FAIL, DockItConstants.SERVER_ERROR,
+					DockItConstants.RESPONSE_EMPTY_DATA, 500);
+		}
+		logger.info("UserServiceImpl sendSmsInvite----ends----");
+		
+	}
+	
 }

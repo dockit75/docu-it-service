@@ -19,4 +19,10 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 	List<Member> findAllById(Iterable<String> iterator);
 
 	Member findByUserAndFamily(User user, Family family);
+
+	List<Member> findByFamily(Family family);
+
+	List<Member> findByFamilyAndInviteStatus(Family family, String inviteAccepted);
+
+	List<Member> findByUserAndInviteStatus(User user, String inviteRequested);
 }

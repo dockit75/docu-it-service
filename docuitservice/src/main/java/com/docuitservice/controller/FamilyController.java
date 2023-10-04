@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.docuitservice.request.EditFamilyRequest;
+import com.docuitservice.request.ExternalInviteAcceptRequest;
+import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
@@ -51,8 +53,33 @@ public class FamilyController {
 		return familyService.familyMemberInvite(familyMemberInviteRequest);
 	}
 
+	@RequestMapping(value = "/listFamilyMembers", method = RequestMethod.GET)
+	public Response getFamilyMembers(@RequestParam String familyId) throws Exception {
+		return familyService.getFamilyMembersList(familyId);
+	}
+	
+	@RequestMapping(value = "/listPendingInvites", method = RequestMethod.GET)
+	public Response getUsersActiveInvites(@RequestParam String userId) throws Exception {
+		return familyService.getUsersPendingInvites(userId);
+	}
+	
 	@RequestMapping(value = "/acceptInvite", method = RequestMethod.POST)
 	public Response acceptFamilyMemberInvite(@RequestBody FamilyMemberInviteAcceptedRequest familyMemberInviteAcceptedRequest) throws Exception {
 		return familyService.familyMemberInviteAccept(familyMemberInviteAcceptedRequest);
+	}
+	
+	@RequestMapping(value = "/externalInvite", method = RequestMethod.POST)
+	public Response addexternalInvite(@RequestBody ExternalInviteRequest externalInviteRequest) throws Exception {
+		return familyService.externalInvite(externalInviteRequest);
+	}
+	
+	@RequestMapping(value = "/getExternalInvite", method = RequestMethod.GET)
+	public Response getExternalInvite(@RequestBody ExternalInviteRequest externalInviteRequest) throws Exception {
+		return familyService.getExternalInvite(externalInviteRequest);
+	}
+	
+	@RequestMapping(value = "/acceptExternalInvite", method = RequestMethod.POST)
+	public Response addexternalInvite(@RequestBody ExternalInviteAcceptRequest externalInviteAcceptRequest) throws Exception {
+		return familyService.externalInviteAccept(externalInviteAcceptRequest);
 	}
 }
