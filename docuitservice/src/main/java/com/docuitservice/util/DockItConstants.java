@@ -73,5 +73,6 @@ public class DockItConstants {
 	public static final String USER_INVITE_DETAILS = "User invite details";
 	public static final String FAMILY_MEMBERS_LIST = "Family members list";
 	public static final String INVITES_PENDING_LIST = "Invites pending";
+	public static final String IMAGE_UPLOADED_SUCCESSFULLY = "User profile image uploaded successfully";
 
 }

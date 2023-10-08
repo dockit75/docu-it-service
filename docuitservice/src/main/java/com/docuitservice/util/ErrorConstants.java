@@ -82,4 +82,6 @@ public class ErrorConstants {
 	public static final String MEMBER_ALREADY_RESPONDED = "Member already responded to Inivte";
 	public static final String DOCUMENT_TYPE_IS_NULL= "Document Type is null";
 	public static final String EXTERNAL_INVITE_IS_INVALID= "External invite id is invalid or null";
+	public static final String IMAGE_UPLOAD_FAILED = "Image upload failed";
+	public static final String PROFILE_IMAGE_FILE_IS_REQUIRED = "Profile image file is required";
 }

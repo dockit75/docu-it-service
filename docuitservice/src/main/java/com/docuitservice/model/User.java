@@ -53,7 +53,7 @@ public class User {
 	@Column(length = 6)
 	private String gender;
 
-	@Column(name = "device_id", length = 255, unique = true)
+	@Column(name = "device_id", length = 255)
 	private String deviceId;
 
 	@Column(name = "account_verified", columnDefinition = "boolean default false")
