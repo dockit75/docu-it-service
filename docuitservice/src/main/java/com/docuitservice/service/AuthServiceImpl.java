@@ -63,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
 		Util.validateRequiredField(signUpRequest.getEmail(), ErrorConstants.EMAIL_IS_REQUIRED);
 		Util.validateRequiredField(signUpRequest.getGender(), ErrorConstants.GENDER_IS_REQUIRED);
 		Util.validateRequiredField(signUpRequest.getPhone(), ErrorConstants.MOBILE_NUMBER_IS_REQUIRED);
-		Util.validateRequiredField(signUpRequest.getDeviceId(), ErrorConstants.DEVICE_ID_IS_REQUIRED);
+//		Util.validateRequiredField(signUpRequest.getDeviceId(), ErrorConstants.DEVICE_ID_IS_REQUIRED);
 		if (!Util.isValidNameFormat(signUpRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_NAME,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -80,8 +80,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_GENDER,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		if (signUpRequest.getEmail() != null
-				|| signUpRequest.getPhone() != null && signUpRequest.getDeviceId() != null) {
+		if (signUpRequest.getEmail() != null || signUpRequest.getPhone() != null) {
 			if (userRepository.existsByEmailAndStatus(signUpRequest.getEmail(), DockItConstants.ACTIVE)) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.EMAIL_ALREADY_EXIST,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -90,10 +89,10 @@ public class AuthServiceImpl implements AuthService {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL,
 						ErrorConstants.MOBILE_NUMBER_ALREADY_REGISTERED, ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
-			if (userRepository.existsByDeviceIdAndStatus(signUpRequest.getDeviceId(), DockItConstants.ACTIVE)) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DEVICE_ID_ALREADY_REGISTERED,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
+//			if (userRepository.existsByDeviceIdAndStatus(signUpRequest.getDeviceId(), DockItConstants.ACTIVE)) {
+//				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DEVICE_ID_ALREADY_REGISTERED,
+//						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+//			}
 			User user = createUser(signUpRequest);
 			userRepository.save(user);
 			userService.sendVerificationCode(user.getEmail(), user.getOtp(), user.getName());
@@ -143,7 +142,8 @@ public class AuthServiceImpl implements AuthService {
 	
 	
 	private User createUser(SignUpRequest signUpRequest) {
-		User userDetails = userRepository.findByDeviceId(signUpRequest.getDeviceId());
+//		User userDetails = userRepository.findByDeviceId(signUpRequest.getDeviceId());
+		User userDetails = userRepository.findByPhone(signUpRequest.getPhone());
 		User user = new User();
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		if (userDetails == null) {

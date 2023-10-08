@@ -71,3 +71,7 @@ sms:
 image:
   upload:
     documentFolderName: dockit/
+
+profile:
+  upload:
+    image: profile/

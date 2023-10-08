@@ -39,7 +39,8 @@ public class SecurityConfig {
 						"/auth/verifyMobileOtp", "/auth/login", "/auth/generateToken", "/auth/refreshToken",
 						"/auth/forgotPin", "/auth/verifyPin", "/auth/changePin", "/auth/adminLogin", "/auth/resendOtp")
 				.permitAll().requestMatchers("/auth/*").authenticated().requestMatchers("/family/*").authenticated()
-				.requestMatchers("/category/**").authenticated().requestMatchers("/dashboard/*").authenticated().requestMatchers("/document/*").authenticated()
+				.requestMatchers("/category/**").authenticated().requestMatchers("/dashboard/*").authenticated()
+				.requestMatchers("/document/*").authenticated().requestMatchers("/image/*").authenticated()
 				.requestMatchers("/swagger-resources/**", "/webjars/**", "/swagger-ui.html", "/v2/**").permitAll()
 				.requestMatchers("/api-docs/**").permitAll().requestMatchers("/actuator/health/**").permitAll().and()
 				.authorizeHttpRequests().and().sessionManagement()
