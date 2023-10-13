@@ -102,6 +102,11 @@
 	        <artifactId>spring-boot-configuration-processor</artifactId>
 	        <optional>true</optional> <!-- Make it optional to avoid runtime dependency -->
     	</dependency>
+    	<dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
