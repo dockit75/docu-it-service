@@ -33,14 +33,6 @@ spring:
 
   main:
     allow-bean-definition-overriding: true
-springdoc:
-  swagger-ui:
-    path: /swagger-ui-index.html
-    
-    spring:
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
 
 mail:  
   host: smtp.gmail.com
