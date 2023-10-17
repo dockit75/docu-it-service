@@ -50,7 +50,7 @@ public class User {
 	@JsonIgnore
 	private String otp;
 
-	@Column(length = 6)
+	@Column(length = 15)
 	private String gender;
 
 	@Column(name = "device_id", length = 255)
@@ -62,4 +62,7 @@ public class User {
 	@Column(name = "is_admin", columnDefinition = "boolean default false")
 	private boolean isAdmin;
 	
+	@Column(name = "otp_created_at")
+	private Date otpCreatedAt;
+
 }

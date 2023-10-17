@@ -87,7 +87,7 @@ public class FamilyServiceImpl implements FamilyService {
 			member.setId(UUID.randomUUID().toString());
 			member.setFamily(family);
 			member.setUser(user);
-			member.setInviteStatus(DockItConstants.NOT_INVITE);
+			member.setInviteStatus(DockItConstants.INVITE_ACCEPTED);
 			member.setStatus(true);
 			member.setCreatedAt(currentTimeStamp);
 			member.setUpdatedAt(currentTimeStamp);

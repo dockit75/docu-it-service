@@ -161,6 +161,7 @@ public class AuthServiceImpl implements AuthService {
 			user.setDeviceId(userDetails.getDeviceId());
 			user.setAdmin(false);
 			user.setAccountVerified(false);
+			user.setOtpCreatedAt(currentTimeStamp);
 		}
 		user.setEmail(signUpRequest.getEmail());
 		user.setName(signUpRequest.getName());
@@ -173,6 +174,7 @@ public class AuthServiceImpl implements AuthService {
 		user.setAdmin(false);
 		user.setAccountVerified(false);
 		user.setDeviceId(signUpRequest.getDeviceId());
+		user.setOtpCreatedAt(currentTimeStamp);
 		return user;
 	}
 
@@ -202,19 +204,16 @@ public class AuthServiceImpl implements AuthService {
 				throw new BusinessException(DockItConstants.RESPONSE_FAIL, ErrorConstants.INVALID_CODE,
 						DockItConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
-			boolean isCodeExpired = Util.validateOtpExpired(user.getCreatedAt());
-			if (isCodeExpired) {
+			boolean isCodeExpired = Util.validateOtpExpired(user.getOtpCreatedAt());
+			if (!isCodeExpired) {
+				user.setStatus(DockItConstants.EMAIL_OTP_VERIFIED);
+			} else {
 				user.setStatus(DockItConstants.MAIL_OTP_EXPIRED);
-				user.setUpdatedAt(currentTimeStamp);
-				userRepository.save(user);
 				throw new BusinessException(DockItConstants.RESPONSE_FAIL, DockItConstants.EMAIL_OTP_IS_EXPIRED,
 						DockItConstants.RESPONSE_EMPTY_DATA, 1001);
-			} else {
-				user.setStatus(DockItConstants.EMAIL_OTP_VERIFIED);
-				user.setUpdatedAt(currentTimeStamp);
-				userRepository.save(user);
 			}
-			
+			user.setUpdatedAt(currentTimeStamp);
+			userRepository.save(user);		
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_REQUEST,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -237,19 +236,12 @@ public class AuthServiceImpl implements AuthService {
 			Date currentTimeStamp = new Date(System.currentTimeMillis());
 			User user = userDetail.get();
 			if (user != null) {
-				boolean isCodeExpired = Util.validateOtpExpired(user.getCreatedAt());
-				if (!isCodeExpired) {					
-					user.setUpdatedAt(currentTimeStamp);
-					user.setStatus(DockItConstants.EMAIL_CODE_RESEND_STATUS);
-					userRepository.save(user);
-					userService.sendVerificationCode(user.getEmail(), user.getOtp(), user.getName());
-				} else {
-					user.setOtp("" + Util.getRandomNumber());					
-					user.setUpdatedAt(currentTimeStamp);
-					user.setStatus(DockItConstants.EMAIL_CODE_RESEND_STATUS);
-					userRepository.save(user);
-					userService.sendVerificationCode(user.getEmail(), user.getOtp(), user.getName());
-				}
+				user.setOtp("" + Util.getRandomNumber());
+				user.setOtpCreatedAt(currentTimeStamp);
+				user.setUpdatedAt(currentTimeStamp);
+				user.setStatus(DockItConstants.EMAIL_CODE_RESEND_STATUS);
+				userRepository.save(user);
+				userService.sendVerificationCode(user.getEmail(), user.getOtp(), user.getName());
 			}
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAILS_NOT_FOUND,
@@ -270,19 +262,12 @@ public class AuthServiceImpl implements AuthService {
 		User user = userRepository.findByPhone(phone);
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		if (user != null) {
-			boolean isCodeExpired = Util.validateOtpExpired(user.getCreatedAt());
-			if (!isCodeExpired) {
-				user.setUpdatedAt(currentTimeStamp);
-				user.setStatus(DockItConstants.MOBILE_OTP_RESEND_STATUS);
-				userRepository.save(user);
-				userService.sendVerificationOTP(user.getPhone(), user.getOtp());
-			} else {
-				user.setOtp("" + Util.getRandomNumber());
-				user.setUpdatedAt(currentTimeStamp);
-				user.setStatus(DockItConstants.MOBILE_OTP_RESEND_STATUS);
-				userRepository.save(user);
-				userService.sendVerificationOTP(user.getPhone(), user.getOtp());
-			}
+			user.setOtp("" + Util.getRandomNumber());
+			user.setOtpCreatedAt(currentTimeStamp);
+			user.setUpdatedAt(currentTimeStamp);
+			user.setStatus(DockItConstants.MOBILE_OTP_RESEND_STATUS);
+			userRepository.save(user);
+			userService.sendVerificationOTP(user.getPhone(), user.getOtp());
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.PHONE_NUMBER_NOT_FOUND,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -342,7 +327,14 @@ public class AuthServiceImpl implements AuthService {
 		User user = userRepository.findByPhone(phone);
 		if (user != null) {
 			Date currentTimeStamp = new Date(System.currentTimeMillis());
-			user.setStatus(DockItConstants.MOBILE_OTP_VERIFIED);
+			boolean isOtpExpired = Util.validateOtpExpired(user.getOtpCreatedAt());
+			if (!isOtpExpired) {
+				user.setStatus(DockItConstants.MOBILE_OTP_VERIFIED);
+			} else {
+				user.setStatus(DockItConstants.MOBILE_OTP_EXPIRED);
+				throw new BusinessException(DockItConstants.RESPONSE_FAIL, DockItConstants.MAIL_OTP_IS_EXPIRED,
+						DockItConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
 			user.setUpdatedAt(currentTimeStamp);
 			userRepository.save(user);
 		} else {
@@ -435,22 +427,22 @@ public class AuthServiceImpl implements AuthService {
 	public Response updateProfile(@Valid UpdateProfileRequest updateProfileRequest) throws Exception {
 		logger.info("AuthServiceImpl updateProfile ---Start---");
 		Util.validateRequiredField(updateProfileRequest.getName(), ErrorConstants.NAME_IS_REQUIRED);
-		Util.validateRequiredField(updateProfileRequest.getEmail(), ErrorConstants.EMAIL_IS_REQUIRED);
+		Util.validateRequiredField(updateProfileRequest.getUserId(), ErrorConstants.USER_ID_IS_REQUIRED);
+		Util.validateRequiredField(updateProfileRequest.getGender(), ErrorConstants.GENDER_IS_REQUIRED);
 		if (!Util.isValidNameFormat(updateProfileRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_NAME,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		if (!Util.isValidEmailIdFormat(updateProfileRequest.getEmail())) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_EMAIL_ID,
+		if (!Util.isValidGender(updateProfileRequest.getGender())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_GENDER,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		Map<String, Object> responseObjectsMap = new HashMap<>();
-		Optional<User> userDetail = userRepository.findByEmail(updateProfileRequest.getEmail());
-		if (userDetail.isPresent()) {
-			User user = userDetail.get();
+		User user = userRepository.findById(updateProfileRequest.getUserId());
+		if (user != null) {
 			Date currentTimeStamp = new Date(System.currentTimeMillis());
 			user.setName(updateProfileRequest.getName());
-			user.setEmail(updateProfileRequest.getEmail());
+			user.setGender(updateProfileRequest.getGender());
 			user.setUpdatedAt(currentTimeStamp);
 			userRepository.save(user);
 			responseObjectsMap.put("userDetails", user);
