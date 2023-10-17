@@ -6,6 +6,8 @@ import com.docuitservice.request.ShareDocumentRequest;
 import com.docuitservice.response.UploadResponse;
 import com.docuitservice.util.Response;
 
+import jakarta.validation.Valid;
+
 public interface DocumentService {
 	
 	public UploadResponse uploadDocument(MultipartFile file,String userId) throws Exception;
@@ -21,5 +23,9 @@ public interface DocumentService {
 	public Response getDocumentList(String userId);
 
 	public Response deleteDocument(String documentId);
+	
+	public Response getUserLastDocumentActivity(String userId);
+
+	public Response updateDocumentCategory(ShareDocumentRequest shareDocumentRequest);
 
 }

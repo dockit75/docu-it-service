@@ -2,6 +2,8 @@ package com.docuitservice.model;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,6 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "document")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Document {
 	
 		@Id

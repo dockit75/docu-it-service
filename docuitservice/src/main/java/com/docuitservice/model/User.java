@@ -3,6 +3,8 @@ package com.docuitservice.model;
 import java.util.Date;
 import org.hibernate.annotations.NaturalId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -13,6 +15,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
 	@Id

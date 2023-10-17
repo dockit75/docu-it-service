@@ -71,6 +71,7 @@ public class ErrorConstants {
 	public static final String INVALID_INPUT = "Input data is invalid or null";
 	public static final String FAMILY_NOT_FOUND = "Family not found";
 	public static final String MEMBER_NOT_FOUND_IN_FAMILY = "Member is not part this family";
+	public static final String UPDATEDBY_NOT_FOUND_IN_FAMILY = "Updating user is not part this family";
 	public static final String USER_ID_IS_INVALID = "User id is invalid or null";
 	public static final String MEMBER_ID_INVALID = "Member id is invalid or null";
 	public static final String FAMILY_IS_INVALID = "Family id is invalid or null";

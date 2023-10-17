@@ -355,7 +355,7 @@ public class FamilyServiceImpl implements FamilyService {
 			if(StringUtils.hasText(externalInviteRequest.getEmail())){
 				externalInvites = externalInviteRepository.findByEmailAndStatus(externalInviteRequest.getEmail(),true);
 			}
-			return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITE_RESPONDED, externalInvites, 200,
+			return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITE_DETAILS, externalInvites, 200,
 					DockItConstants.RESPONSE_SUCCESS);
 	}
 

@@ -3,6 +3,7 @@ package com.docuitservice.model;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +16,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "family")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Family {
 
 	@Id
@@ -29,7 +31,6 @@ public class Family {
 
 	@ManyToOne
 	@JoinColumn(name = "admin_id")
-	@JsonIgnore
 	private User user;
 
 	@Column(name = "created_at")

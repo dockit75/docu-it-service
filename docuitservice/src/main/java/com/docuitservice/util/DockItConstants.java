@@ -61,6 +61,8 @@ public class DockItConstants {
 	public static final String DOCUMENT_REVOKED_SUCCESFULLY = "Document access revoked successfully";
 	public static final String DOCUMENT_DELETED_SUCCESFULLY = "Document deleted successfully";
 	public static final String DOCUMENT_DELETION_UNSUCCESFULLY = "Document deletion was unsuccessfully";
+	public static final String DOCUMENT_UPDATED_SUCCESFULLY = "Document updated was Successfully";
+	public static final String DOCUMENT_UPDATED_UNSUCCESFULLY = "Document updated was unsuccessfully";
 	public static final int DOCUMENT_NAME_LENGTH = 30;
 	public static final String INVITE_REQUESTED = "Invited";
 	public static final String INVITE_ACCEPTED = "Accepted";
