@@ -81,7 +81,8 @@ public class Util {
 	}
 
 	public static boolean isValidGender(String gender) {
-		return "Male".equalsIgnoreCase(gender) || "Female".equalsIgnoreCase(gender);
+		return "Male".equalsIgnoreCase(gender) || "Female".equalsIgnoreCase(gender) || "Other".equalsIgnoreCase(gender)
+				|| "Unspecified".equalsIgnoreCase(gender);
 	}
 
 	public static boolean isValidCodeFormat(String code) {

@@ -8,9 +8,12 @@ import java.util.Map;
 
 import com.docuitservice.model.Category;
 import com.docuitservice.model.Document;
+import com.docuitservice.model.Family;
+import com.docuitservice.model.Member;
 import com.docuitservice.response.CategoryDetails;
 import com.docuitservice.response.CategoryResponse;
 import com.docuitservice.response.DocumentResponse;
+import com.docuitservice.response.FamilyDetails;
 import com.docuitservice.util.Response;
 
 public class ResponseHelper {
@@ -71,11 +74,30 @@ public class ResponseHelper {
 			documentResponse.setCategoryName(category.getCategoryName());
 			documentResponse.setUploadedBy(document.getUser().getName());
 			documentResponse.setDocumentUrl(document.getUrl());
-			documentResponse.setFamilyId(document.getFamily().getId());
-			documentResponse.setFamilyName(document.getFamily().getName());
+			if(document.getFamily() != null) {
+				documentResponse.setFamilyId(document.getFamily().getId());
+				documentResponse.setFamilyName(document.getFamily().getName());
+			}else {
+				documentResponse.setFamilyId(null);
+				documentResponse.setFamilyName(null);
+			}
+			documentResponse.setCreatedDate(document.getCreatedAt().toString());
+			documentResponse.setUpdatedDate(document.getUpdatedAt().toString());
 			documentDetailsList.add(documentResponse);
 		}
 		return documentDetailsList;
+	}
+
+	public static FamilyDetails setFamilyDetailsResponse(Family family, List<Member> familyMembers) {
+		FamilyDetails familyDetails = new FamilyDetails();
+		familyDetails.setId(family.getId());
+		familyDetails.setName(family.getName());
+		familyDetails.setStatus(family.getStatus());
+		familyDetails.setAdminId(family.getUser().getId());
+		familyDetails.setCreatedAt(family.getCreatedAt());
+		familyDetails.setUpdatedAt(family.getUpdatedAt());
+		familyDetails.setMember(familyMembers);
+		return familyDetails;
 	}
 
 }

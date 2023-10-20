@@ -3,6 +3,8 @@ package com.docuitservice.model;
 import java.util.Date;
 import org.hibernate.annotations.NaturalId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -13,6 +15,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
 
 	@Id
@@ -50,7 +53,7 @@ public class User {
 	@JsonIgnore
 	private String otp;
 
-	@Column(length = 6)
+	@Column(length = 15)
 	private String gender;
 
 	@Column(name = "device_id", length = 255)
@@ -62,4 +65,7 @@ public class User {
 	@Column(name = "is_admin", columnDefinition = "boolean default false")
 	private boolean isAdmin;
 	
+	@Column(name = "otp_created_at")
+	private Date otpCreatedAt;
+
 }

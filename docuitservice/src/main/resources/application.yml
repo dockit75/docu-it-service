@@ -33,6 +33,10 @@ spring:
 
   main:
     allow-bean-definition-overriding: true
+    
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
 
 mail:  
   host: smtp.gmail.com
