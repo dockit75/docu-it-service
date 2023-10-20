@@ -38,10 +38,10 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 	Optional<Document> findById(String id);
 
 	List<Document> findByUserIdAndDocumentStatus(String userId, boolean b);
-
-	List<Document> findByCategory(Category category);
 	
 	@Query(value = "select * from public.document where uploaded_by=:userId and status=true and date (\"document\".created_at)=(SELECT date(max(created_at)) FROM public.document where uploaded_by=:userId and status=true) order by document.id LIMIT 3 OFFSET 0", nativeQuery = true)
 	public List<Document> getMaxDateDocument(@Param("userId") String userId);
+
+	List<Document> findByCategoryOrderByUpdatedAtDesc(Category category);
 
 }

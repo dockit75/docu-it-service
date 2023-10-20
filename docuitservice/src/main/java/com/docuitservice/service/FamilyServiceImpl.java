@@ -30,6 +30,7 @@ import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
+import com.docuitservice.response.FamilyDetails;
 import com.docuitservice.util.DockItConstants;
 import com.docuitservice.util.ErrorConstants;
 import com.docuitservice.util.Response;
@@ -71,6 +72,7 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_ALREADY_REGISTERED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
+		Map<String, Object> responseObjectsMap = new HashMap<>();
 		User user = userRepository.findById(familyRequest.getAdminId());
 		if (user != null) {
 			Family family = new Family();
@@ -92,13 +94,15 @@ public class FamilyServiceImpl implements FamilyService {
 			member.setCreatedAt(currentTimeStamp);
 			member.setUpdatedAt(currentTimeStamp);
 			memberRepository.save(member);
-
+			List<Member> familyMembers = memberRepository.findByFamily(family);
+			FamilyDetails familyDetails = ResponseHelper.setFamilyDetailsResponse(family,familyMembers);
+			responseObjectsMap.put("familyDetails", familyDetails);
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		logger.info("FamilyServiceImpl addFamily ---End---");
-		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_REGISTERED_SUCCESSFULLY, "", 200,
+		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_REGISTERED_SUCCESSFULLY, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
 

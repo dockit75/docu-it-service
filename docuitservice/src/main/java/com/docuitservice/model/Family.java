@@ -31,6 +31,7 @@ public class Family {
 
 	@ManyToOne
 	@JoinColumn(name = "admin_id")
+	@JsonIgnore
 	private User user;
 
 	@Column(name = "created_at")
