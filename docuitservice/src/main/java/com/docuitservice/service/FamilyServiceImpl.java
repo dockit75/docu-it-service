@@ -160,7 +160,7 @@ public class FamilyServiceImpl implements FamilyService {
 	
 	@Override
 	public Response familyMemberInvite(FamilyMemberInviteRequest familyMemberInviteRequest) {
-
+		logger.info("FamilyServiceImpl familyMemberInvite ---Start---");
 		// TODO Auto-generated method stub
 		User user=null;
 		Family family=null;
@@ -195,7 +195,8 @@ public class FamilyServiceImpl implements FamilyService {
 		member.setStatus(true);
 		member.setCreatedAt(currentTimeStamp);
 		member.setUpdatedAt(currentTimeStamp);
-		memberRepository.save(member);				
+		memberRepository.save(member);			
+		logger.info("FamilyServiceImpl familyMemberInvite ---Start---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	
@@ -297,18 +298,24 @@ public class FamilyServiceImpl implements FamilyService {
 	@Override
 	public Response externalInvite(ExternalInviteRequest externalInviteRequest) throws Exception {
 		// TODO Auto-generated method stub
+		logger.info("FamilyServiceImpl externalInvite ---Start---");
 		Family family = null;
 		User user = null;
+		User checkUserbyPhone = null;
+		Optional<User> checkUserbyEmail = null;
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
-		if(!StringUtils.hasText(externalInviteRequest.getEmail()) && !StringUtils.hasText(externalInviteRequest.getPhone())) {
+		if(StringUtils.hasText(externalInviteRequest.getEmail()) || StringUtils.hasText(externalInviteRequest.getPhone())) {
+			logger.info("FamilyServiceImpl externalInvite ---Either Email or Phone number is present ---");
+		}else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			
 		}
 		if (StringUtils.hasText(externalInviteRequest.getPhone()) && ! Util.isValidPhoneNumberFormat(externalInviteRequest.getPhone())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_PHONE_NUMBER,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		if (StringUtils.hasText(externalInviteRequest.getEmail()) && !Util.isValidEmailIdFormat(externalInviteRequest.getEmail())) {
+		else if (StringUtils.hasText(externalInviteRequest.getEmail()) && !Util.isValidEmailIdFormat(externalInviteRequest.getEmail())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_EMAIL_ID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
@@ -326,7 +333,21 @@ public class FamilyServiceImpl implements FamilyService {
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 		}
-		
+		if (StringUtils.hasText(externalInviteRequest.getPhone())) {
+			checkUserbyPhone= userRepository.findByPhone(externalInviteRequest.getPhone());
+		}
+		if (StringUtils.hasText(externalInviteRequest.getEmail())) {
+			checkUserbyEmail= userRepository.findByEmail(externalInviteRequest.getEmail());
+		}
+		if(StringUtils.hasText(externalInviteRequest.getPhone()) && null != checkUserbyPhone) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_WITH_PHONE_EXISTS,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (StringUtils.hasText(externalInviteRequest.getEmail()) && checkUserbyEmail.isPresent()) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_WITH_EMAIL_EXISTS,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+				
 		ExternalInvite externalInvite = new ExternalInvite();
 		externalInvite.setId(UUID.randomUUID().toString());
 		if(StringUtils.hasText(externalInviteRequest.getPhone())) {
@@ -341,10 +362,13 @@ public class FamilyServiceImpl implements FamilyService {
 		externalInvite.setCreatedAt(currentTimeStamp);
 		externalInvite.setUpdatedAt(currentTimeStamp);
 		externalInviteRepository.save(externalInvite);
+		if(StringUtils.hasText(externalInviteRequest.getEmail())) {
 		userService.sendEmailInvite(externalInvite.getEmail(), user.getName());
+		}
 		if (externalInvite.getPhone() != null && !externalInvite.getPhone().isEmpty()) {
 			userService.sendSmsInvite(externalInvite.getPhone(), user.getName());
 		}
+		logger.info("FamilyServiceImpl externalInvite ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}

@@ -1,6 +1,7 @@
 package com.docuitservice.repository;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,7 +29,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 	User findByPhone(String phone);
 
 	User findByDeviceId(String deviceId);
-
+	
+	List<User> findByStatusAndIsAdmin(String active,boolean b);
+	
+	
 	User findByDeviceIdAndPassword(String deviceId, String pinNumber);
 	
 	@Query("SELECT SUM(CASE WHEN u.accountVerified = TRUE OR u.accountVerified = FALSE THEN 1 ELSE 0 END) AS totalUser, "
@@ -38,8 +42,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 			+ "FROM User u")
 	Tuple getUserAndDocumentStatisticsWithinLast30Days(@Param("thirtyDaysAgo") Date thirtyDaysAgo);
 
-
-
+	
 
 
 	

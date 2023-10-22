@@ -20,6 +20,7 @@ import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
 import com.docuitservice.service.FamilyService;
+import com.docuitservice.service.UserService;
 import com.docuitservice.util.Response;
 import jakarta.validation.Valid;
 
@@ -32,6 +33,11 @@ public class FamilyController {
 
 	@Autowired
 	private FamilyService familyService;
+	
+	@Autowired
+	private UserService userService;
+	
+	
 
 	@PostMapping("/addFamily")
 	public Response addFamily(@RequestBody @Valid FamilyRequest familyRequest) throws Exception {
@@ -81,5 +87,10 @@ public class FamilyController {
 	@RequestMapping(value = "/acceptExternalInvite", method = RequestMethod.POST)
 	public Response addexternalInvite(@RequestBody ExternalInviteAcceptRequest externalInviteAcceptRequest) throws Exception {
 		return familyService.externalInviteAccept(externalInviteAcceptRequest);
+	}
+	
+	@RequestMapping(value = "/listDocultUsers", method = RequestMethod.GET)
+	public Response addexternalInvite() throws Exception {
+		return userService.getUserDetails();
 	}
 }

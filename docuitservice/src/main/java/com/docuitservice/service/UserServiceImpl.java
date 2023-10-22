@@ -1,6 +1,8 @@
 package com.docuitservice.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +14,14 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import com.docuitservice.exception.BusinessException;
 import com.docuitservice.helper.NotificationHelper;
+import com.docuitservice.helper.ResponseHelper;
+import com.docuitservice.model.User;
+import com.docuitservice.repository.UserRepository;
 import com.docuitservice.util.DockItConstants;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import com.docuitservice.util.Response;
 
 @Service
 @PropertySource(ignoreResourceNotFound = false, value = "classpath:mail.properties")
@@ -46,6 +52,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Value("${sms.externalInvite.template}")
 	private String externalInviteSmsTemplate;
+	
+	@Autowired
+	private UserRepository userRepository;
 	
 	@Override
 	public void sendVerificationCode(String email, String otp, String name) throws Exception {
@@ -127,5 +136,12 @@ public class UserServiceImpl implements UserService {
 		logger.info("UserServiceImpl sendSmsInvite----ends----");
 		
 	}
+	
+		public Response getUserDetails() throws Exception{
+		List<User> user = new ArrayList<User>();
+		user = userRepository.findByStatusAndIsAdmin(DockItConstants.ACTIVE,false);
+		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, user, 200,
+				DockItConstants.RESPONSE_SUCCESS);
+		}
 	
 }
