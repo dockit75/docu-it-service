@@ -54,7 +54,7 @@ public class FamilyController {
 		return familyService.listFamily(adminId);
 	}
 
-	@RequestMapping(value = "/inviteDocultUser", method = RequestMethod.POST)
+	@RequestMapping(value = "/inviteDocuitUser", method = RequestMethod.POST)
 	public Response addFamilyMember(@RequestBody FamilyMemberInviteRequest familyMemberInviteRequest) throws Exception {
 		return familyService.familyMemberInvite(familyMemberInviteRequest);
 	}
@@ -89,7 +89,7 @@ public class FamilyController {
 		return familyService.externalInviteAccept(externalInviteAcceptRequest);
 	}
 	
-	@RequestMapping(value = "/listDocultUsers", method = RequestMethod.GET)
+	@RequestMapping(value = "/listDocuitUsers", method = RequestMethod.GET)
 	public Response addexternalInvite() throws Exception {
 		return userService.getUserDetails();
 	}

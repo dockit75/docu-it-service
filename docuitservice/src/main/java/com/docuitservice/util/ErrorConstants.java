@@ -85,6 +85,6 @@ public class ErrorConstants {
 	public static final String EXTERNAL_INVITE_IS_INVALID= "External invite id is invalid or null";
 	public static final String IMAGE_UPLOAD_FAILED = "Image upload failed";
 	public static final String PROFILE_IMAGE_FILE_IS_REQUIRED = "Profile image file is required";
-	public static final String USER_WITH_PHONE_EXISTS = "An user with this phone number is already a Docult user";
-	public static final String USER_WITH_EMAIL_EXISTS = "An user with this Email is already a Docult user";
+	public static final String USER_WITH_PHONE_EXISTS = "An user with this phone number is already a Docuit user";
+	public static final String USER_WITH_EMAIL_EXISTS = "An user with this Email is already a Docuit user";
 }
