@@ -87,4 +87,7 @@ public class ErrorConstants {
 	public static final String PROFILE_IMAGE_FILE_IS_REQUIRED = "Profile image file is required";
 	public static final String USER_WITH_PHONE_EXISTS = "An user with this phone number is already a Docuit user";
 	public static final String USER_WITH_EMAIL_EXISTS = "An user with this Email is already a Docuit user";
+	public static final String INVALID_INVITE = "User cannot Invite himself to the family";
+	public static final String INVALID_USER_ID = "Invited user is not a valid users";
+	public static final String MEMBER_ALREADY_IN_THIS_FAMILY = "is already invited for this family";
 }

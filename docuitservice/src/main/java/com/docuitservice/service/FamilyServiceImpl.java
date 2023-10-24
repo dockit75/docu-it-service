@@ -164,18 +164,13 @@ public class FamilyServiceImpl implements FamilyService {
 		// TODO Auto-generated method stub
 		User user=null;
 		Family family=null;
-		Optional<Family> familyOpt =  null;
-		if(!StringUtils.hasLength(familyMemberInviteRequest.getFamilyId()) || !StringUtils.hasLength(familyMemberInviteRequest.getUserId())) {
+		List<String> userIds = null;
+		User inviteBy = null;
+		List<Member> memberList = new ArrayList<Member>();
+		if(!StringUtils.hasLength(familyMemberInviteRequest.getFamilyId()) || null == familyMemberInviteRequest.getUserIds() || (null != familyMemberInviteRequest.getUserIds() && familyMemberInviteRequest.getUserIds().isEmpty()) || !StringUtils.hasText(familyMemberInviteRequest.getInvitedBy())) {
 			
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
-		if(null !=familyMemberInviteRequest.getUserId()) {
-			user = userRepository.findById(familyMemberInviteRequest.getUserId());
-			if(null ==user) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
 		}
 		if(null !=familyMemberInviteRequest.getFamilyId()) {
 			family = familyRepository.findById(familyMemberInviteRequest.getFamilyId());
@@ -184,22 +179,51 @@ public class FamilyServiceImpl implements FamilyService {
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 		}
-		Date currentTimeStamp = new Date(System.currentTimeMillis());
-		//family = familyOpt.get();
-		
-		Member member = new Member();
-		member.setId(UUID.randomUUID().toString());
-		member.setFamily(family);
-		member.setUser(user);
-		member.setInviteStatus(DockItConstants.INVITE_REQUESTED);
-		member.setStatus(true);
-		member.setCreatedAt(currentTimeStamp);
-		member.setUpdatedAt(currentTimeStamp);
-		memberRepository.save(member);			
+		if(null !=familyMemberInviteRequest.getUserIds()) {
+			userIds = familyMemberInviteRequest.getUserIds();
+			if(userIds.contains(familyMemberInviteRequest.getInvitedBy())) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INVITE,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}
+		if(StringUtils.hasText(familyMemberInviteRequest.getInvitedBy())) {
+			inviteBy = userRepository.findById(familyMemberInviteRequest.getInvitedBy());
+			if(null ==inviteBy) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_USER_ID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}
+		for(String userId : userIds) {
+			if(StringUtils.hasText(userId)) {
+			user = userRepository.findById(userId);
+			if(null ==user) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+			
+			Date currentTimeStamp = new Date(System.currentTimeMillis());
+			//family = familyOpt.get();
+			memberList = memberRepository.findByUserAndFamilyAndInviteStatusNot(user, family, DockItConstants.INVITE_REJECTED);
+			if(!memberList.isEmpty()) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL,user.getName()+"("+"Phone-"+user.getPhone() +")"+" "+ErrorConstants.MEMBER_ALREADY_IN_THIS_FAMILY,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+				
+			Member member = new Member();
+			member.setId(UUID.randomUUID().toString());
+			member.setFamily(family);
+			member.setUser(user);
+			member.setInviteStatus(DockItConstants.INVITE_REQUESTED);
+			member.setStatus(true);
+			member.setCreatedAt(currentTimeStamp);
+			member.setUpdatedAt(currentTimeStamp);
+			member.setInvitedBy(inviteBy);
+			memberRepository.save(member);
+			}
+		}
 		logger.info("FamilyServiceImpl familyMemberInvite ---Start---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
 				DockItConstants.RESPONSE_SUCCESS);
-	
 	}
 
 	@Override
@@ -291,7 +315,7 @@ public class FamilyServiceImpl implements FamilyService {
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		members = memberRepository.findByUserAndInviteStatus(user,DockItConstants.INVITE_REQUESTED);
-		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_MEMBERS_LIST, members, 200,
+		return ResponseHelper.getSuccessResponse(DockItConstants.INVITES_PENDING_LIST, members, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
 

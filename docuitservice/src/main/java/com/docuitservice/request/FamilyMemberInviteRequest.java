@@ -1,5 +1,7 @@
 package com.docuitservice.request;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -14,8 +16,10 @@ import lombok.Setter;
 public class FamilyMemberInviteRequest {
 
 	
-	public String userId;
+	public List<String> userIds;
 	
 	public String familyId;
+	
+	public String invitedBy;
 	
 }
