@@ -146,7 +146,7 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_IS_REQUIRED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Family> familyList = familyRepository.findByUserId(adminId);
+		List<Member> familyList = memberRepository.findByUserIdAndInviteStatus(adminId,DockItConstants.INVITE_ACCEPTED);
 		if (familyList == null || familyList.isEmpty()) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_DETAILS_NOT_FOUND,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -452,6 +452,7 @@ public class FamilyServiceImpl implements FamilyService {
 				member.setStatus(true);
 				member.setCreatedAt(currentTimeStamp);
 				member.setUpdatedAt(currentTimeStamp);
+				member.setInvitedBy(externalInvite.getUser());
 				memberRepository.save(member);
 				
 				return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,

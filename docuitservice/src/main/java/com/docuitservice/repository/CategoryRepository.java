@@ -17,7 +17,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 	Category findByCategoryNameIgnoreCase(String categoryName);
 		
 	@Query("SELECT c.id, c.categoryName, c.status, COUNT(d.id) AS fileCount " + "FROM Category c "
-			+ "LEFT JOIN Document d ON c.id = d.category.id AND d.user.id = :userId " + "GROUP BY c.id")
+			+ "LEFT JOIN Document d ON c.id = d.category.id AND d.user.id = :userId AND d.documentStatus = true GROUP BY c.id")
 	List<Object[]> getCategoryDetailsWithFileCounts(@Param("userId") String userId);
 	
 

@@ -27,4 +27,6 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 	List<Member> findByUserAndInviteStatus(User user, String inviteRequested);
 
 	List<Member> findByUserAndFamilyAndInviteStatusNot(User user, Family family,String inviteAccepted);
+
+	List<Member> findByUserIdAndInviteStatus(String adminId, String inviteAccepted);
 }

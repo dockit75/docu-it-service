@@ -2,6 +2,8 @@ package com.docuitservice.model;
 
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -14,6 +16,7 @@ import lombok.Data;
 @Entity
 @Table(name = "images")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Images {
 
 	@Id
