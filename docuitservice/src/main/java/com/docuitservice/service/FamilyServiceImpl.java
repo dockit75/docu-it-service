@@ -24,6 +24,7 @@ import com.docuitservice.repository.ExternalInviteRepository;
 import com.docuitservice.repository.FamilyRepository;
 import com.docuitservice.repository.MemberRepository;
 import com.docuitservice.repository.UserRepository;
+import com.docuitservice.request.CommonInviteRequest;
 import com.docuitservice.request.EditFamilyRequest;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
 import com.docuitservice.request.ExternalInviteRequest;
@@ -262,7 +263,8 @@ public class FamilyServiceImpl implements FamilyService {
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		//family = familyOpt.get();
 		member = memberRepository.findByUserAndFamily(user,family);
-		if(member.getInviteStatus().equalsIgnoreCase(DockItConstants.INVITE_ACCEPTED) || member.getInviteStatus().equalsIgnoreCase(DockItConstants.INVITE_ACCEPTED)) {
+		//member = memberRepository.findById(id);
+		if(member.getInviteStatus().equalsIgnoreCase(DockItConstants.INVITE_ACCEPTED)) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ALREADY_RESPONDED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
@@ -292,7 +294,7 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		members = memberRepository.findByFamilyAndInviteStatus(family,DockItConstants.INVITE_ACCEPTED);
+		members = memberRepository.findByFamilyAndInviteStatusNot(family,DockItConstants.INVITE_REJECTED);
 		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_MEMBERS_LIST, members, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
@@ -458,6 +460,60 @@ public class FamilyServiceImpl implements FamilyService {
 				return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
 						DockItConstants.RESPONSE_SUCCESS);
 	}
+
+	@Override
+	public Response familyMemberCommonInvite(CommonInviteRequest commonInviteRequest) throws Exception {
+		User user = null;
+		User invitedBy = null;
+		Family family = null;
+		FamilyMemberInviteRequest familyMemberInviteRequest = new FamilyMemberInviteRequest();
+		List<String> phoneNoList =  new ArrayList<String>();
+		List<String> userList =  new ArrayList<String>();
+		if(null !=commonInviteRequest.getPhoneNumbers() && commonInviteRequest.getPhoneNumbers().isEmpty()) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if(null !=commonInviteRequest.getFamilyId()) {
+			family = familyRepository.findById(commonInviteRequest.getFamilyId());
+			if(null == family) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}
+		if(null !=commonInviteRequest.getInvitedBy()) {
+			invitedBy = userRepository.findById(commonInviteRequest.getInvitedBy());
+			if(null == invitedBy) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVITED_BY_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+		}
+		phoneNoList = commonInviteRequest.getPhoneNumbers();
+		
+		for(String phoneNo : phoneNoList) {
+			if(StringUtils.hasText(phoneNo)) {
+			user = userRepository.findByPhone(phoneNo);
+			}
+			if(null != user && null !=user.getId()) {
+				userList.add(user.getId());
+			}else {
+				ExternalInviteRequest externalInviteRequest = new ExternalInviteRequest();
+				externalInviteRequest.setPhone(phoneNo);
+				externalInviteRequest.setFamilyId(family.getId());
+				externalInviteRequest.setInvitedBy(invitedBy.getId());
+				externalInvite(externalInviteRequest);
+			}
+		}
+		if(null != userList && !userList.isEmpty()) {
+		familyMemberInviteRequest.setUserIds(userList);
+		familyMemberInviteRequest.setFamilyId(family.getId());
+		familyMemberInviteRequest.setInvitedBy(invitedBy.getId());
+		familyMemberInvite(familyMemberInviteRequest);
+		}
+	
+		return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
+				DockItConstants.RESPONSE_SUCCESS);
+	}
+	
 	
 	
 

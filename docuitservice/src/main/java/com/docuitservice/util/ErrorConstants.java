@@ -90,4 +90,5 @@ public class ErrorConstants {
 	public static final String INVALID_INVITE = "User cannot Invite himself to the family";
 	public static final String INVALID_USER_ID = "Invited user is not a valid users";
 	public static final String MEMBER_ALREADY_IN_THIS_FAMILY = "is already invited for this family";
+	public static final String INVITED_BY_IS_INVALID = "Invited User by is invalid or null";
 }

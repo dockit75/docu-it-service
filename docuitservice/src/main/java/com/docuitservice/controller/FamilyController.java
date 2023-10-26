@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.docuitservice.request.CommonInviteRequest;
 import com.docuitservice.request.EditFamilyRequest;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
 import com.docuitservice.request.ExternalInviteRequest;
@@ -92,5 +93,9 @@ public class FamilyController {
 	@RequestMapping(value = "/listDocuitUsers", method = RequestMethod.GET)
 	public Response addexternalInvite() throws Exception {
 		return userService.getUserDetails();
+	}
+	@RequestMapping(value = "/inviteUser", method = RequestMethod.POST)
+	public Response inviteUser(@RequestBody CommonInviteRequest commonInviteRequest) throws Exception {
+		return familyService.familyMemberCommonInvite(commonInviteRequest);
 	}
 }
