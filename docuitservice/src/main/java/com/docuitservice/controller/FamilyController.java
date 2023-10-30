@@ -14,12 +14,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.docuitservice.request.CommonInviteRequest;
+import com.docuitservice.request.DeleteFamilyRequest;
 import com.docuitservice.request.EditFamilyRequest;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
 import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
+import com.docuitservice.request.MemberOperationRequest;
 import com.docuitservice.service.FamilyService;
 import com.docuitservice.service.UserService;
 import com.docuitservice.util.Response;
@@ -94,8 +96,20 @@ public class FamilyController {
 	public Response addexternalInvite() throws Exception {
 		return userService.getUserDetails();
 	}
+	
 	@RequestMapping(value = "/inviteUser", method = RequestMethod.POST)
 	public Response inviteUser(@RequestBody CommonInviteRequest commonInviteRequest) throws Exception {
 		return familyService.familyMemberCommonInvite(commonInviteRequest);
 	}
+	
+	@RequestMapping(value = "/removeFamilyMembers", method = RequestMethod.DELETE)
+	public Response removeFamilyMemebers(@RequestBody MemberOperationRequest memberOperationRequest) throws Exception {
+		return familyService.removeFamilyMemebers(memberOperationRequest);
+	}
+	
+	@RequestMapping(value = "/deleteFamily", method = RequestMethod.DELETE)
+	public Response deleteFamily(@RequestBody DeleteFamilyRequest deleteFamilyRequest) throws Exception {
+		return familyService.deleteFamily(deleteFamilyRequest);
+	}
+	
 }

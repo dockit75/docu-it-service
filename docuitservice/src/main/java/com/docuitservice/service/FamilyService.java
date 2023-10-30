@@ -1,12 +1,14 @@
 package com.docuitservice.service;
 
 import com.docuitservice.request.CommonInviteRequest;
+import com.docuitservice.request.DeleteFamilyRequest;
 import com.docuitservice.request.EditFamilyRequest;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
 import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
+import com.docuitservice.request.MemberOperationRequest;
 import com.docuitservice.util.Response;
 
 import jakarta.validation.Valid;
@@ -29,9 +31,17 @@ public interface FamilyService {
 
 	Response getExternalInvite(ExternalInviteRequest externalInviteRequest) throws Exception;
 
-	Response getFamilyMembersList(String familyId);
+	Response getFamilyMembersList(String familyId) throws Exception;
 
 	Response getUsersPendingInvites(String userId);
 	
 	Response familyMemberCommonInvite(CommonInviteRequest commonInviteRequest)throws Exception;
+
+	Response removeFamilyMemebers(MemberOperationRequest memberOperationRequest);
+	
+	public Response deleteFamily(@Valid DeleteFamilyRequest deleteFamilyRequest) throws Exception;
+
+	public Response getExternalInviteByInviter(String invitedBy,String familyId) throws Exception;
+	
+	
 }

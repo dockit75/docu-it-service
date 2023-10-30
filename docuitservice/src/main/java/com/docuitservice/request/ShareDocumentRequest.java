@@ -25,6 +25,8 @@ public class ShareDocumentRequest {
 	
 	private String action;
 	
+	private String documentName;
+	
 	private String updatedBy;
 
 }

@@ -70,10 +70,10 @@ public class DocumentController {
 		return documentService.getUserLastDocumentActivity(userId);
 	}
 	
-	@RequestMapping(value = "/editDocumentCategory", method = RequestMethod.PUT)
+	/*@RequestMapping(value = "/editDocumentCategory", method = RequestMethod.PUT)
 	public Response updateDocumentCategory(@RequestBody @Valid ShareDocumentRequest shareDocumentRequest) throws Exception {
 		return documentService.updateDocumentCategory(shareDocumentRequest);
-	}
+	}*/
 	
 	@RequestMapping(value = "/updateDocument", method = RequestMethod.PUT)
 	public Response updateDocument(@RequestBody @Valid ShareDocumentRequest shareDocumentRequest) throws Exception {

@@ -1,6 +1,10 @@
 package com.docuitservice.service;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
+
+import com.docuitservice.model.Member;
 import com.docuitservice.request.SaveDocumentRequest;
 import com.docuitservice.request.ShareDocumentRequest;
 import com.docuitservice.response.UploadResponse;
@@ -27,5 +31,9 @@ public interface DocumentService {
 	public Response getUserLastDocumentActivity(String userId);
 
 	public Response updateDocumentCategory(ShareDocumentRequest shareDocumentRequest);
+	
+	public void removeDocumentAccessByMemberIds(List<String> memberIds);
+	
+	public void deleteDocumentsBasedonMemberAndFamily(List<Member> members);
 
 }

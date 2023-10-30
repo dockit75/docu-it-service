@@ -1,6 +1,7 @@
 package com.docuitservice.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,5 +16,7 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
 	Family findByNameIgnoreCase(String name);
 
 	Family findById(String familyId);
+	
+	void deleteAllByIdInBatch(Iterable<Long> ids);
 
 }

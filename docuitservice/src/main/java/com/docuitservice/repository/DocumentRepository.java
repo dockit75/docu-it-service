@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 
 import com.docuitservice.model.Category;
 import com.docuitservice.model.Document;
+import com.docuitservice.model.Family;
+import com.docuitservice.model.User;
 
 /**
  * @author srira
@@ -32,5 +34,9 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 
 	@Query(value = "select * from document where (category_id = :id and uploaded_by = :userId and status = true) order by updated_at desc", nativeQuery = true)
 	List<Document> findByCategoryOrderByUpdatedAtDesc(@Param("id") String id, @Param("userId") String userId);
+	
+	List<Document> findByFamilyIdAndUserId(String familyId,String userId);
+
+	List<Document> findByUserAndFamily(User user, Family family);
 
 }

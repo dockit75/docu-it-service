@@ -92,8 +92,9 @@ public class DocumentServiceImpl implements DocumentService{
 		logger.info("uploadDocument --->starts"+file.getOriginalFilename(),userId);
 		long filesize =  file.getSize();
 		String fileContentType = file.getContentType();
-		UUID uuid = UUID.randomUUID();
-		String filename = uuid+file.getOriginalFilename();
+		//UUID uuid = UUID.randomUUID();
+		//String filename = uuid+file.getOriginalFilename();// commented as this is handled in React
+		String filename = file.getOriginalFilename();
 		String documentPath="";
 		String documentUrl= null;
 		User user = null;
@@ -254,7 +255,7 @@ public class DocumentServiceImpl implements DocumentService{
 		Family family = null;
 		String familyId = null;
 		User user = null;
-		if(StringUtils.hasText(shareDocumentRequest.getCategoryId()) && !StringUtils.hasText(shareDocumentRequest.getAction()) && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
+		if((StringUtils.hasText(shareDocumentRequest.getCategoryId())|| StringUtils.hasText(shareDocumentRequest.getDocumentName())) && !StringUtils.hasText(shareDocumentRequest.getAction()) && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
 			return updateDocumentCategory(shareDocumentRequest);
 		}else {
 		//Document document =  shareDocumentRequest.getDocumentId();
@@ -376,6 +377,44 @@ public class DocumentServiceImpl implements DocumentService{
 		shareRepository.deleteAllByIdInBatch(iteratorToIterable(shareIds.iterator()));
 	    }
 	    logger.info("saveShareDetails --->End");
+	}
+	
+	public void removeDocumentAccessByMemberIds(List<String> memberIds) {
+		logger.info("removeDocumentAccessByMemberIds --->Begin");
+		List<Share> shareList =new ArrayList<>(); 
+		shareList = shareRepository.findByMemberIdIn(memberIds);
+		List<String> shareIds = new ArrayList<String>();
+		for(Share shares :shareList) {
+			shareIds.add(shares.getId());
+		}
+		shareRepository.flush();
+	    if(!shareList.isEmpty()) {
+		shareRepository.deleteAllByIdInBatch(iteratorToIterable(shareIds.iterator()));
+	    }
+	    logger.info("removeDocumentAccessByMemberIds --->End");
+	}
+	
+	public void deleteDocumentsBasedonMemberAndFamily(List<Member> members) {
+		logger.info("deleteDocumentsBasedonMemberAndFamily --->Begin");
+		List<Document> docList =new ArrayList<>(); 
+	
+		for(Member member : members) {
+			if(null != member.getFamily() && null!= member.getUser()) {
+				docList = documentRepository.findByUserAndFamily(member.getUser(), member.getFamily());
+				deleteDocument(docList);
+			}
+		}
+	
+	    logger.info("deleteDocumentsBasedonMemberAndFamily --->End");
+	}
+	
+	public void deleteDocument(List<Document> docList) {
+		logger.info("deleteDocument --->Begin");
+		for(Document document : docList) {
+			document.setDocumentStatus(false);
+			documentRepository.save(document);
+		}			
+		logger.info("deleteDocument --->End");
 	}
 
 	@Override
@@ -547,9 +586,10 @@ public class DocumentServiceImpl implements DocumentService{
 		Optional<Document> documentOpt = null;
 		Category category = null;
 		String responseStatus = null;
+	
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 
-		if (null == shareDocumentRequest.getDocumentId() || null == shareDocumentRequest.getCategoryId()) {
+		if ((null == shareDocumentRequest.getDocumentId() || null == shareDocumentRequest.getCategoryId()) || null == shareDocumentRequest.getDocumentName()) {
 
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -562,7 +602,6 @@ public class DocumentServiceImpl implements DocumentService{
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 		}
-
 		if (StringUtils.hasText(shareDocumentRequest.getCategoryId())) {
 			category = categoryRepository.findById(shareDocumentRequest.getCategoryId());
 		}
@@ -570,9 +609,16 @@ public class DocumentServiceImpl implements DocumentService{
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-
+		if (!StringUtils.hasText(shareDocumentRequest.getDocumentName())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_NAME_IS_INVALID,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+				
 		Document document = documentOpt.get();
 		document.setCategory(category);
+		if (StringUtils.hasText(shareDocumentRequest.getDocumentName())) {
+			document.setDocumentName(shareDocumentRequest.getDocumentName());
+		}
 		document.setUpdatedAt(currentTimeStamp);
 		documentRepository.save(document);
 		responseStatus = DockItConstants.DOCUMENT_UPDATED_SUCCESFULLY;
