@@ -19,4 +19,6 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
 	
 	void deleteAllByIdInBatch(Iterable<Long> ids);
 
+	List<Family> findByUserIdAndStatus(String adminId, boolean b);
+
 }

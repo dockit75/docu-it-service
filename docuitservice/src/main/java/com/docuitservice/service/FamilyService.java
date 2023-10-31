@@ -41,7 +41,7 @@ public interface FamilyService {
 	
 	public Response deleteFamily(@Valid DeleteFamilyRequest deleteFamilyRequest) throws Exception;
 
-	public Response getExternalInviteByInviter(String invitedBy,String familyId) throws Exception;
+	//public Response getExternalInviteByInviter(String invitedBy,String familyId) throws Exception;
 	
 	
 }

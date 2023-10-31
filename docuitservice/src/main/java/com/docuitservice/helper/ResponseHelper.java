@@ -72,7 +72,7 @@ public class ResponseHelper {
 			documentResponse.setDocumentId(document.getId());
 			documentResponse.setDocumentName(document.getDocumentName());
 			documentResponse.setCategoryName(category.getCategoryName());
-			documentResponse.setUploadedBy(document.getUser().getName());
+			documentResponse.setUploadedBy(document.getUser().getId());
 			documentResponse.setDocumentUrl(document.getUrl());
 			if(document.getFamily() != null) {
 				documentResponse.setFamilyId(document.getFamily().getId());

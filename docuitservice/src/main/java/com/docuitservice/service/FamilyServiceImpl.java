@@ -156,7 +156,8 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_IS_REQUIRED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Member> familyList = memberRepository.findByUserIdAndInviteStatus(adminId,DockItConstants.INVITE_ACCEPTED);
+		List<Family> familyList = familyRepository.findByUserIdAndStatus(adminId,true);
+//		List<Member> familyList = memberRepository.findByUserIdAndInviteStatus(adminId,DockItConstants.INVITE_ACCEPTED);
 		if (familyList == null || familyList.isEmpty()) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_DETAILS_NOT_FOUND,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -606,8 +607,8 @@ public class FamilyServiceImpl implements FamilyService {
 				DockItConstants.RESPONSE_SUCCESS);
 	}
 	
-	@Override
-	public Response getExternalInviteByInviter(String invitedBy,String familyId) throws Exception {
+	
+	public List<String> getExternalInviteByInviter(String invitedBy,String familyId) throws Exception {
 		logger.info("FamilyServiceImpl getExternalInviteByInviter ---Begin---");
 		User user = null;
 		Family family = null;
@@ -632,8 +633,7 @@ public class FamilyServiceImpl implements FamilyService {
 		ExternalInvite = externalInviteRepository.findByStatusAndUserAndFamilyDistinctByPhone(userId,familyId);
 	//	ExternalInvite = externalInviteRepository.findDistinctByPhone();
 		logger.info("FamilyServiceImpl getExternalInviteByInviter ---End---");
-		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_NAME_CHANGED_SUCCESSFULLY, ExternalInvite, 200,
-				DockItConstants.RESPONSE_SUCCESS);
+		return ExternalInvite;
 		
 	}
 	
