@@ -38,7 +38,7 @@ public class DocumentController {
 		 return response;
 	}
 	
-	@RequestMapping(value = "/shareDocument", method = RequestMethod.POST)
+	/* @RequestMapping(value = "/shareDocument", method = RequestMethod.POST)
 	public Response shareDocument(@RequestBody @Valid ShareDocumentRequest shareDocumentRequest) throws Exception {
 		return documentService.shareDocument(shareDocumentRequest);
 	}
@@ -50,10 +50,11 @@ public class DocumentController {
 	@RequestMapping(value = "/getDocumentSharedList", method = RequestMethod.GET)
 	public Response getDocumentShared(@RequestParam String documentId) throws Exception {
 		return documentService.getDocumentShared(documentId);
-	}
+	}*/
+	
 	@RequestMapping(value = "/getDocumentDetails", method = RequestMethod.GET)
 	public Response getDocumentDetails(@RequestParam String documentId) throws Exception {
-		return documentService.getDocumentShared(documentId);
+		return documentService.getDocumentDetails(documentId);
 	}
 	@RequestMapping(value = "/getUserDocumentList", method = RequestMethod.GET)
 	public Response getUserDocumentList(@RequestParam String userId) throws Exception {

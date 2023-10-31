@@ -57,10 +57,10 @@ public class FamilyController {
 		return familyService.listFamily(adminId);
 	}
 
-	@RequestMapping(value = "/inviteDocuitUser", method = RequestMethod.POST)
+	/*@RequestMapping(value = "/inviteDocuitUser", method = RequestMethod.POST)
 	public Response addFamilyMember(@RequestBody FamilyMemberInviteRequest familyMemberInviteRequest) throws Exception {
 		return familyService.familyMemberInvite(familyMemberInviteRequest);
-	}
+	}*/
 
 	@RequestMapping(value = "/listFamilyMembers", method = RequestMethod.GET)
 	public Response getFamilyMembers(@RequestParam String familyId) throws Exception {
@@ -77,7 +77,7 @@ public class FamilyController {
 		return familyService.familyMemberInviteAccept(familyMemberInviteAcceptedRequest);
 	}
 	
-	@RequestMapping(value = "/externalInvite", method = RequestMethod.POST)
+	/*@RequestMapping(value = "/externalInvite", method = RequestMethod.POST)
 	public Response addexternalInvite(@RequestBody ExternalInviteRequest externalInviteRequest) throws Exception {
 		return familyService.externalInvite(externalInviteRequest);
 	}
@@ -85,17 +85,17 @@ public class FamilyController {
 	@RequestMapping(value = "/getExternalInvite", method = RequestMethod.GET)
 	public Response getExternalInvite(@RequestBody ExternalInviteRequest externalInviteRequest) throws Exception {
 		return familyService.getExternalInvite(externalInviteRequest);
-	}
+	} 
 	
 	@RequestMapping(value = "/acceptExternalInvite", method = RequestMethod.POST)
 	public Response addexternalInvite(@RequestBody ExternalInviteAcceptRequest externalInviteAcceptRequest) throws Exception {
 		return familyService.externalInviteAccept(externalInviteAcceptRequest);
-	}
+	} 
 	
 	@RequestMapping(value = "/listDocuitUsers", method = RequestMethod.GET)
 	public Response addexternalInvite() throws Exception {
 		return userService.getUserDetails();
-	}
+	} */
 	
 	@RequestMapping(value = "/inviteUser", method = RequestMethod.POST)
 	public Response inviteUser(@RequestBody CommonInviteRequest commonInviteRequest) throws Exception {

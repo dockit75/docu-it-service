@@ -102,6 +102,7 @@ public class FamilyServiceImpl implements FamilyService {
 			member.setStatus(true);
 			member.setCreatedAt(currentTimeStamp);
 			member.setUpdatedAt(currentTimeStamp);
+			member.setInvitedBy(user);
 			memberRepository.save(member);
 			List<Member> familyMembers = memberRepository.findByFamily(family);
 			FamilyDetails familyDetails = ResponseHelper.setFamilyDetailsResponse(family,familyMembers);
