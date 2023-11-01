@@ -1,5 +1,8 @@
 package com.docuitservice.service;
 
+import java.util.List;
+
+import com.docuitservice.model.Member;
 import com.docuitservice.request.CommonInviteRequest;
 import com.docuitservice.request.DeleteFamilyRequest;
 import com.docuitservice.request.EditFamilyRequest;
@@ -27,7 +30,7 @@ public interface FamilyService {
 
 	Response externalInvite(ExternalInviteRequest externalInviteRequest)throws Exception;
 
-	Response externalInviteAccept(ExternalInviteAcceptRequest externalInviteAcceptRequest);
+	List<Member> externalInviteAccept(ExternalInviteAcceptRequest externalInviteAcceptRequest);
 
 	Response getExternalInvite(ExternalInviteRequest externalInviteRequest) throws Exception;
 

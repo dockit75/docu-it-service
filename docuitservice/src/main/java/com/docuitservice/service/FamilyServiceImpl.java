@@ -430,11 +430,12 @@ public class FamilyServiceImpl implements FamilyService {
 	}
 
 	@Override
-	public Response externalInviteAccept(ExternalInviteAcceptRequest externalInviteAcceptRequest) {
+	public List<Member> externalInviteAccept(ExternalInviteAcceptRequest externalInviteAcceptRequest) {
 		// TODO Auto-generated method stub
 		// TODO Auto-generated method stub
 				Family family = null;
 				User user = null;
+				List<Member> memberList =  new ArrayList<>();
 				Optional<ExternalInvite> externalInviteOpt = null;
 				ExternalInvite externalInvite = null;
 				Date currentTimeStamp = new Date(System.currentTimeMillis());
@@ -461,7 +462,9 @@ public class FamilyServiceImpl implements FamilyService {
 				externalInvite.setStatus(false);
 				externalInvite.setUpdatedAt(currentTimeStamp);
 				externalInviteRepository.save(externalInvite);
-				
+				family = externalInvite.getFamily();
+				memberList = memberRepository.findByUserAndFamilyAndInviteStatusNot(user, family, DockItConstants.INVITE_REJECTED);
+				if(null == memberList || (null != memberList && memberList.isEmpty())) {
 				Member member = new Member();
 				member.setId(UUID.randomUUID().toString());
 				member.setFamily(externalInvite.getFamily());
@@ -472,9 +475,8 @@ public class FamilyServiceImpl implements FamilyService {
 				member.setUpdatedAt(currentTimeStamp);
 				member.setInvitedBy(externalInvite.getUser());
 				memberRepository.save(member);
-				
-				return ResponseHelper.getSuccessResponse(DockItConstants.USER_INVITED_SUCCESSFULY, "", 200,
-						DockItConstants.RESPONSE_SUCCESS);
+				}
+				return memberList;
 	}
 
 	@Override
