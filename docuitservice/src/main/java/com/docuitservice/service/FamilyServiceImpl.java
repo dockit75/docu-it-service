@@ -156,12 +156,13 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_IS_REQUIRED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Family> familyList = familyRepository.findByUserIdAndStatus(adminId,true);
-//		List<Member> familyList = memberRepository.findByUserIdAndInviteStatus(adminId,DockItConstants.INVITE_ACCEPTED);
-		if (familyList == null || familyList.isEmpty()) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_DETAILS_NOT_FOUND,
+//		List<Family> familyList = familyRepository.findByUserIdAndStatus(adminId,true);
+		List<Member> memberList = memberRepository.findByUserIdAndInviteStatus(adminId,DockItConstants.INVITE_ACCEPTED);
+		if (memberList == null || memberList.isEmpty()) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
+		List<Family> familyList = ResponseHelper.setFamilyVO(memberList);
 		Map<String, Object> responseObjectsMap = new HashMap<>();
 		responseObjectsMap.put("familyList", familyList);
 		logger.info("FamilyServiceImpl listFamily ---End---");

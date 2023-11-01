@@ -100,5 +100,16 @@ public class ResponseHelper {
 		return familyDetails;
 	}
 
+	public static List<Family> setFamilyVO(List<Member> memberList) {
+		List<Family> familyList = new ArrayList<>();
+		for (Member member : memberList) {
+			Family family = member.getFamily();
+			if (family.getStatus()) {
+				family.setCreatedBy(member.getFamily().getUser().getId());
+				familyList.add(family);
+			}
+		}
+		return familyList;
+	}
 }
 
