@@ -13,7 +13,7 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
 
 	List<Family> findByUserId(String adminId);
 
-	Family findByNameIgnoreCase(String name);
+	Family findByUserIdAndNameIgnoreCase(String userId, String name);
 
 	Family findById(String familyId);
 	

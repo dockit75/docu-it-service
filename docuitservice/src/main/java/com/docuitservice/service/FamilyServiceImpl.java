@@ -76,7 +76,8 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_FAMILY_NAME,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		Family familyVO = familyRepository.findByNameIgnoreCase(familyRequest.getName());
+		Family familyVO = familyRepository.findByUserIdAndNameIgnoreCase(familyRequest.getAdminId(),
+				familyRequest.getName());
 		if (familyVO != null && familyVO.getName().equalsIgnoreCase(familyRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_ALREADY_REGISTERED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -125,11 +126,13 @@ public class FamilyServiceImpl implements FamilyService {
 		}
 		Util.validateRequiredField(editFamilyRequest.getName(), ErrorConstants.FAMILY_NAME_IS_REQUIRED);
 		Util.validateRequiredField(editFamilyRequest.getFamilyId(), ErrorConstants.FAMILY_ID_IS_REQUIRED);
+		Util.validateRequiredField(editFamilyRequest.getAdminId(), ErrorConstants.ADMIN_ID_IS_REQUIRED);
 		if (!Util.isValidNameFormat(editFamilyRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_FAMILY_NAME,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		Family familyVO = familyRepository.findByNameIgnoreCase(editFamilyRequest.getName());
+		Family familyVO = familyRepository.findByUserIdAndNameIgnoreCase(editFamilyRequest.getAdminId(),
+				editFamilyRequest.getName());
 		if (familyVO != null && familyVO.getName().equalsIgnoreCase(editFamilyRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_ALREADY_REGISTERED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
