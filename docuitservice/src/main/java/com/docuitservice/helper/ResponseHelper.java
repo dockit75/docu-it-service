@@ -72,8 +72,9 @@ public class ResponseHelper {
 			documentResponse.setDocumentId(document.getId());
 			documentResponse.setDocumentName(document.getDocumentName());
 			documentResponse.setCategoryName(category.getCategoryName());
-			documentResponse.setUploadedBy(document.getUser().getName());
+			documentResponse.setUploadedBy(document.getUser().getId());
 			documentResponse.setDocumentUrl(document.getUrl());
+			documentResponse.setPageCount(document.getPageCount());
 			if(document.getFamily() != null) {
 				documentResponse.setFamilyId(document.getFamily().getId());
 				documentResponse.setFamilyName(document.getFamily().getName());
@@ -100,5 +101,16 @@ public class ResponseHelper {
 		return familyDetails;
 	}
 
+	public static List<Family> setFamilyVO(List<Member> memberList) {
+		List<Family> familyList = new ArrayList<>();
+		for (Member member : memberList) {
+			Family family = member.getFamily();
+			if (family.getStatus()) {
+				family.setCreatedBy(member.getFamily().getUser().getId());
+				familyList.add(family);
+			}
+		}
+		return familyList;
+	}
 }
 

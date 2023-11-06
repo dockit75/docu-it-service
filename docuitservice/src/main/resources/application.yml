@@ -16,6 +16,11 @@ server:
     context-path: /dockitservice
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB    
+
   datasource:
     driver-class-name: org.postgresql.Driver
     password: postgres

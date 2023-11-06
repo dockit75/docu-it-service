@@ -169,7 +169,7 @@ public class CategoryServiceImpl implements CategoryService {
 			throw new BusinessException(DockItConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
 					DockItConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Document> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category);
+		List<Document> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
 		List<DocumentResponse> documentDetailsList = ResponseHelper.setDocumentResponsetList(documents, category);
 		responseObjectsMap.put("documentDetailsList", documentDetailsList);
 		responseObjectsMap.put("totalCount", documentDetailsList.size());

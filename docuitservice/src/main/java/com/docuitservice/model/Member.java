@@ -37,12 +37,13 @@ public class Member {
 
 	@ManyToOne
 	@JoinColumn(name = "family_id")
-	@JsonIgnore
 	private Family family;
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
-	@JsonIgnore
 	private User user;
 	
+	@ManyToOne
+	@JoinColumn(name = "invited_by")
+	private User invitedBy;
 }

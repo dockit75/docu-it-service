@@ -60,4 +60,7 @@ public class Document {
 		
 		@Column(name = "status")
 		private boolean documentStatus;
+
+		@Column(name = "page_count")
+		private Integer pageCount;
 }

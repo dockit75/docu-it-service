@@ -7,4 +7,6 @@ public class EditFamilyRequest {
 
 	private String name;
 	private String familyId;
+	private String adminId;
+
 }

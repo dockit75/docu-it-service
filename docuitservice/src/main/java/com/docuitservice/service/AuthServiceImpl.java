@@ -117,26 +117,30 @@ public class AuthServiceImpl implements AuthService {
 		if (user.getPhone() != null && !user.getPhone().isEmpty()) {
 		externalInviteRequest.setPhone(user.getPhone());
 		}
-		if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-			externalInviteRequest.setEmail(user.getEmail());
-		}
+		/*
+		 * if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+		 * externalInviteRequest.setEmail(user.getEmail()); }
+		 */
 		List<ExternalInvite> externalInvites = new ArrayList<ExternalInvite>();
 		String inviteId = null;
 		if(user.getPhone() != null && !user.getPhone().isEmpty()){
 			externalInvites = externalInviteRepository.findByPhoneAndStatus(externalInviteRequest.getPhone(),true);
 			}
-		if(user.getEmail() != null && !user.getEmail().isEmpty()){
-			externalInvites = externalInviteRepository.findByEmailAndStatus(externalInviteRequest.getEmail(),true);
-		}
+		/*
+		 * if(user.getEmail() != null && !user.getEmail().isEmpty()){ externalInvites =
+		 * externalInviteRepository.findByEmailAndStatus(externalInviteRequest.getEmail(
+		 * ),true); }
+		 */
 		if(!externalInvites.isEmpty() && externalInvites.size()>0) {
-			ExternalInvite externalInvite = externalInvites.get(0);
-			inviteId = externalInvite.getId();
-		}
-		if(StringUtils.hasText(inviteId) && StringUtils.hasText(user.getId())) {
-			ExternalInviteAcceptRequest	externalInviteAcceptRequest =  new ExternalInviteAcceptRequest();
-			externalInviteAcceptRequest.setExternalInviteId(inviteId);
-			externalInviteAcceptRequest.setUserId(user.getId());
-			familyService.externalInviteAccept(externalInviteAcceptRequest);
+			for(ExternalInvite externalInvite: externalInvites)
+			{
+				if(StringUtils.hasText(externalInvite.getPhone()) && StringUtils.hasText(user.getId())) {
+					ExternalInviteAcceptRequest	externalInviteAcceptRequest =  new ExternalInviteAcceptRequest();
+					externalInviteAcceptRequest.setExternalInviteId(externalInvite.getId());
+					externalInviteAcceptRequest.setUserId(user.getId());
+					familyService.externalInviteAccept(externalInviteAcceptRequest);
+				}
+			}
 		}
 	}
 	

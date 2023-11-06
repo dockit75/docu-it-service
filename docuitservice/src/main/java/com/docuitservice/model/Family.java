@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity
@@ -23,7 +24,7 @@ public class Family {
 	@Column(name = "id")
 	private String id;
 
-	@Column(name = "name", unique = true, length = 50)	
+	@Column(name = "name", length = 50)	
 	private String name;
 
 	@Column(name = "status")
@@ -39,5 +40,8 @@ public class Family {
 
 	@Column(name = "updated_at")
 	private Date updatedAt;
+	
+	@Transient
+	private String createdBy;
 
 }

@@ -177,7 +177,7 @@
                 <tr>
                     <td style="padding: 0px 30px 0px 30px;">
                         <p><b>Hello,</b></p>
-                        <p>You are been invited to DocuIt app by <b>${invitedBy}</b>. Please register to Docult and join <b>${invitedBy}</b>'s family</p>
+                        <p>You are been invited to DocuIt app by <b>${invitedBy}</b>. Please register to Docuit and join <b>${invitedBy}</b>'s family</p>
                         <p><b>Cheers,</b><br><b>The DocuIt Team</b></p>
                     </td>
                 </tr>

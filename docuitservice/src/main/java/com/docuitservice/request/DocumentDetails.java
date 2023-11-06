@@ -16,4 +16,6 @@ public class DocumentDetails {
 	
 	private String documentType;
 
+	private Integer pageCount;
+
 }

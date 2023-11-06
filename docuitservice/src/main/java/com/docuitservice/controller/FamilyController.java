@@ -13,13 +13,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.docuitservice.request.CommonInviteRequest;
+import com.docuitservice.request.DeleteFamilyRequest;
 import com.docuitservice.request.EditFamilyRequest;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
 import com.docuitservice.request.ExternalInviteRequest;
 import com.docuitservice.request.FamilyMemberInviteAcceptedRequest;
 import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
+import com.docuitservice.request.MemberOperationRequest;
 import com.docuitservice.service.FamilyService;
+import com.docuitservice.service.UserService;
 import com.docuitservice.util.Response;
 import jakarta.validation.Valid;
 
@@ -32,6 +36,11 @@ public class FamilyController {
 
 	@Autowired
 	private FamilyService familyService;
+	
+	@Autowired
+	private UserService userService;
+	
+	
 
 	@PostMapping("/addFamily")
 	public Response addFamily(@RequestBody @Valid FamilyRequest familyRequest) throws Exception {
@@ -48,10 +57,10 @@ public class FamilyController {
 		return familyService.listFamily(adminId);
 	}
 
-	@RequestMapping(value = "/inviteDocultUser", method = RequestMethod.POST)
+	/*@RequestMapping(value = "/inviteDocuitUser", method = RequestMethod.POST)
 	public Response addFamilyMember(@RequestBody FamilyMemberInviteRequest familyMemberInviteRequest) throws Exception {
 		return familyService.familyMemberInvite(familyMemberInviteRequest);
-	}
+	}*/
 
 	@RequestMapping(value = "/listFamilyMembers", method = RequestMethod.GET)
 	public Response getFamilyMembers(@RequestParam String familyId) throws Exception {
@@ -68,7 +77,7 @@ public class FamilyController {
 		return familyService.familyMemberInviteAccept(familyMemberInviteAcceptedRequest);
 	}
 	
-	@RequestMapping(value = "/externalInvite", method = RequestMethod.POST)
+	/*@RequestMapping(value = "/externalInvite", method = RequestMethod.POST)
 	public Response addexternalInvite(@RequestBody ExternalInviteRequest externalInviteRequest) throws Exception {
 		return familyService.externalInvite(externalInviteRequest);
 	}
@@ -76,10 +85,31 @@ public class FamilyController {
 	@RequestMapping(value = "/getExternalInvite", method = RequestMethod.GET)
 	public Response getExternalInvite(@RequestBody ExternalInviteRequest externalInviteRequest) throws Exception {
 		return familyService.getExternalInvite(externalInviteRequest);
-	}
+	} 
 	
 	@RequestMapping(value = "/acceptExternalInvite", method = RequestMethod.POST)
 	public Response addexternalInvite(@RequestBody ExternalInviteAcceptRequest externalInviteAcceptRequest) throws Exception {
 		return familyService.externalInviteAccept(externalInviteAcceptRequest);
+	} 
+	
+	@RequestMapping(value = "/listDocuitUsers", method = RequestMethod.GET)
+	public Response addexternalInvite() throws Exception {
+		return userService.getUserDetails();
+	} */
+	
+	@RequestMapping(value = "/inviteUser", method = RequestMethod.POST)
+	public Response inviteUser(@RequestBody CommonInviteRequest commonInviteRequest) throws Exception {
+		return familyService.familyMemberCommonInvite(commonInviteRequest);
 	}
+	
+	@RequestMapping(value = "/removeFamilyMembers", method = RequestMethod.DELETE)
+	public Response removeFamilyMemebers(@RequestBody MemberOperationRequest memberOperationRequest) throws Exception {
+		return familyService.removeFamilyMemebers(memberOperationRequest);
+	}
+	
+	@RequestMapping(value = "/deleteFamily", method = RequestMethod.DELETE)
+	public Response deleteFamily(@RequestBody DeleteFamilyRequest deleteFamilyRequest) throws Exception {
+		return familyService.deleteFamily(deleteFamilyRequest);
+	}
+	
 }

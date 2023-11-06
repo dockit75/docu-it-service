@@ -76,5 +76,8 @@ public class DockItConstants {
 	public static final String FAMILY_MEMBERS_LIST = "Family members list";
 	public static final String INVITES_PENDING_LIST = "Invites pending";
 	public static final String IMAGE_UPLOADED_SUCCESSFULLY = "User profile image uploaded successfully";
+	public static final String MEMBERS_DELETED_SUCCESSFULY = "Memebers deleted successfully";
+	public static final String EXETERNAL_SUCCESSFULY = "Memebers deleted successfully";
+	public static final String FAMILY_DELETED_SUCCESSFULY = "Family deleted successfully";
 
 }

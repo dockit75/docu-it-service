@@ -32,12 +32,11 @@ public class ExternalInvite {
 	@Column(name = "updated_at")
 	private Date updatedAt;
 	
-	@NaturalId
-	@Column(length = 60, unique = false)
+	@Column(length = 60)
 	@Size(min = 1, max = 60)
 	private String email;
 
-	@Column(name = "phone", unique = false)
+	@Column(name = "phone")
 	@Size(min = 10, max = 11)
 	private String phone;
 
@@ -47,7 +46,6 @@ public class ExternalInvite {
 	
 	@ManyToOne
 	@JoinColumn(name = "invited_by")
-	@JsonIgnore
 	private User user;
 	
 	@Column(name = "status")
