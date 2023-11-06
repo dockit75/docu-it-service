@@ -61,7 +61,7 @@ public class DocumentController {
 		return documentService.getDocumentList(userId);
 	}
 	
-	@RequestMapping(value = "/deleteDocument", method = RequestMethod.PUT)
+	@RequestMapping(value = "/deleteDocument", method = RequestMethod.DELETE)
 	public Response deleteDocument(@RequestParam String documentId) throws Exception {
 		return documentService.deleteDocument(documentId);
 	}

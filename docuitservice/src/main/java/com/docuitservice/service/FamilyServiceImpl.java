@@ -120,6 +120,7 @@ public class FamilyServiceImpl implements FamilyService {
 	@Override
 	public Response editFamily(@Valid EditFamilyRequest editFamilyRequest) throws Exception {
 		logger.info("FamilyServiceImpl editFamily ---Start---");
+		Optional<Family> familyOpt = null;
 		if (editFamilyRequest == null) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_REQUEST,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -137,7 +138,14 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NAME_ALREADY_REGISTERED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		Family family = familyRepository.findById(editFamilyRequest.getFamilyId());
+		
+		familyOpt = familyRepository.findById(editFamilyRequest.getFamilyId());
+		if(null== familyOpt || (null!= familyOpt && familyOpt.isEmpty())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		Family family = familyOpt.get();
+		
 		if (family != null) {
 			Date currentTimeStamp = new Date(System.currentTimeMillis());
 			family.setName(editFamilyRequest.getName());
@@ -181,6 +189,7 @@ public class FamilyServiceImpl implements FamilyService {
 		Family family=null;
 		List<String> userIds = null;
 		User inviteBy = null;
+		Optional<Family> familyOpt = null;
 		List<Member> memberList = new ArrayList<Member>();
 		if(!StringUtils.hasLength(familyMemberInviteRequest.getFamilyId()) || null == familyMemberInviteRequest.getUserIds() || (null != familyMemberInviteRequest.getUserIds() && familyMemberInviteRequest.getUserIds().isEmpty()) || !StringUtils.hasText(familyMemberInviteRequest.getInvitedBy())) {
 			
@@ -188,11 +197,14 @@ public class FamilyServiceImpl implements FamilyService {
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		if(null !=familyMemberInviteRequest.getFamilyId()) {
-			family = familyRepository.findById(familyMemberInviteRequest.getFamilyId());
-			if(null ==family) {
+		
+			
+			familyOpt = familyRepository.findById(familyMemberInviteRequest.getFamilyId());
+			if(null== familyOpt || (null!= familyOpt && familyOpt.isEmpty())) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
+			family = familyOpt.get();
 		}
 		if(null !=familyMemberInviteRequest.getUserIds()) {
 			userIds = familyMemberInviteRequest.getUserIds();
@@ -261,11 +273,12 @@ public class FamilyServiceImpl implements FamilyService {
 			}
 		}
 		if(null !=familyMemberInviteAcceptedRequest.getFamilyId()) {
-			family = familyRepository.findById(familyMemberInviteAcceptedRequest.getFamilyId());
-			if(null ==family) {
+			familyOpt = familyRepository.findById(familyMemberInviteAcceptedRequest.getFamilyId());
+			if(null ==familyOpt || (null !=familyOpt && familyOpt.isEmpty())) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
+			family = familyOpt.get();
 		}
 		
 		if(StringUtils.hasLength(familyMemberInviteAcceptedRequest.getInviteStatus()) && (!familyMemberInviteAcceptedRequest.getInviteStatus().equalsIgnoreCase(DockItConstants.INVITE_ACCEPTED) && !familyMemberInviteAcceptedRequest.getInviteStatus().equalsIgnoreCase(DockItConstants.INVITE_REJECTED))) {
@@ -278,6 +291,10 @@ public class FamilyServiceImpl implements FamilyService {
 		//family = familyOpt.get();
 		member = memberRepository.findByUserAndFamily(user,family);
 		//member = memberRepository.findById(id);
+		if(null == member) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
 		if(member.getInviteStatus().equalsIgnoreCase(DockItConstants.INVITE_ACCEPTED)) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ALREADY_RESPONDED,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -297,23 +314,25 @@ public class FamilyServiceImpl implements FamilyService {
 	@Override
 	public Response getFamilyMembersList(String familyId) throws Exception {
 		// TODO Auto-generated method stub
-		Family family=null;
-		Map<String,Object> response = new HashMap<>();
-		
-		if(!StringUtils.hasLength(familyId)) {
+		Family family = null;
+		Optional<Family> familyOpt =  null;
+		Map<String, Object> response = new HashMap<>();
+
+		if (!StringUtils.hasLength(familyId)) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		family = familyRepository.findById(familyId);
-		if(null ==family) {
+		
+		familyOpt = familyRepository.findById(familyId);
+		if(null ==familyOpt || (null !=familyOpt && familyOpt.isEmpty())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		
-		response.put("MemberList",  memberRepository.findByFamilyAndInviteStatusNot(family,DockItConstants.INVITE_REJECTED));
-		response.put("ExternalInvites", getExternalInviteByInviter(family.getUser().getId(),family.getId()));
-		
-		
+		family = familyOpt.get();
+		response.put("MemberList",
+				memberRepository.findByFamilyAndInviteStatusNot(family, DockItConstants.INVITE_REJECTED));
+		response.put("ExternalInvites", getExternalInviteByInviter(family.getUser().getId(), family.getId()));
+
 		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_MEMBERS_LIST, response, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
@@ -345,6 +364,7 @@ public class FamilyServiceImpl implements FamilyService {
 		// TODO Auto-generated method stub
 		logger.info("FamilyServiceImpl externalInvite ---Start---");
 		Family family = null;
+		Optional<Family> familyOpt =  null;
 		User user = null;
 		User checkUserbyPhone = null;
 		Optional<User> checkUserbyEmail = null;
@@ -365,11 +385,12 @@ public class FamilyServiceImpl implements FamilyService {
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		if(null !=externalInviteRequest.getFamilyId()) {
-			family = familyRepository.findById(externalInviteRequest.getFamilyId());
-			if(null == family) {
+			familyOpt =  familyRepository.findById(externalInviteRequest.getFamilyId());
+			if(null ==familyOpt || (null !=familyOpt && familyOpt.isEmpty())) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
+			family = familyOpt.get();
 		}
 		if(null !=externalInviteRequest.getInvitedBy()) {
 			user = userRepository.findById(externalInviteRequest.getInvitedBy());
@@ -487,6 +508,7 @@ public class FamilyServiceImpl implements FamilyService {
 		User user = null;
 		User invitedBy = null;
 		Family family = null;
+		Optional<Family> familyOpt =  null;
 		FamilyMemberInviteRequest familyMemberInviteRequest = new FamilyMemberInviteRequest();
 		List<String> phoneNoList =  new ArrayList<String>();
 		List<String> userList =  new ArrayList<String>();
@@ -495,11 +517,12 @@ public class FamilyServiceImpl implements FamilyService {
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		if(null !=commonInviteRequest.getFamilyId()) {
-			family = familyRepository.findById(commonInviteRequest.getFamilyId());
-			if(null == family) {
+			familyOpt = familyRepository.findById(commonInviteRequest.getFamilyId());
+			if(null ==familyOpt || (null !=familyOpt && familyOpt.isEmpty())) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
+			family = familyOpt.get();
 		}
 		if(null !=commonInviteRequest.getInvitedBy()) {
 			invitedBy = userRepository.findById(commonInviteRequest.getInvitedBy());
@@ -572,9 +595,13 @@ public class FamilyServiceImpl implements FamilyService {
 	public Response deleteFamily(@Valid DeleteFamilyRequest deleteFamilyRequest) throws Exception {
 		logger.info("FamilyServiceImpl deleteFamily ---Start---");
 		User user =  null;
+		Optional<Family> familyOpt = null;
 		Family family = null;
 		List<Member> memberList = new ArrayList<Member>();
 		List<String> memberIdList = null;
+		List<ExternalInvite> externalInviteList = new ArrayList<ExternalInvite>();
+		List<String> externalIdList = null;
+		String familyId = deleteFamilyRequest.getFamilyId();
 		MemberOperationRequest memberOperationRequest =  new MemberOperationRequest();
 		if (deleteFamilyRequest == null) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_REQUEST,
@@ -594,19 +621,26 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_ADMIN_ID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		family = familyRepository.findById(deleteFamilyRequest.getFamilyId());
-		if(null== family) {
+		familyOpt = familyRepository.findById(familyId);
+		if(null== familyOpt || (null!= familyOpt && familyOpt.isEmpty())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		
+		family = familyOpt.get();
 		memberList = memberRepository.findByFamily(family);
 		user = userRepository.findById(deleteFamilyRequest.getAdminId());
 		memberIdList = memberList.stream().map(x->x.getId()).collect(Collectors.toList());
+		if(null !=memberIdList && !memberIdList.isEmpty()) {
 		memberOperationRequest.setMemberIds(memberIdList);
 		removeFamilyMemebers(memberOperationRequest);
-		family.setStatus(false);
-		familyRepository.save(family);
+		}
+		externalInviteList = externalInviteRepository.findByFamily(family);
+		externalIdList = externalInviteList.stream().map(x->x.getId()).collect(Collectors.toList());
+		if(null != externalIdList && !externalIdList.isEmpty()) {
+			externalInviteRepository.deleteAllByIdInBatch(iteratorToIterable(externalIdList.iterator()));
+		}
+		//familyRepository.deleteByFamilyId(familyId);
+		familyRepository.deleteById(familyId);
 		
 		logger.info("FamilyServiceImpl deleteFamily ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FAMILY_DELETED_SUCCESSFULY, "", 200,
@@ -618,6 +652,7 @@ public class FamilyServiceImpl implements FamilyService {
 		logger.info("FamilyServiceImpl getExternalInviteByInviter ---Begin---");
 		User user = null;
 		Family family = null;
+		Optional<Family> familyOpt = null;
 		String userId = null;
 		List<String> ExternalInvite = null;
 		if(!StringUtils.hasText(invitedBy) && !StringUtils.hasText(familyId)) {
@@ -629,16 +664,17 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_USER_ID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		family = familyRepository.findById(familyId);
-		if(null== family) {
+		familyOpt = familyRepository.findById(familyId);
+		if(null ==familyOpt || (null !=familyOpt && familyOpt.isEmpty())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
+		family= familyOpt.get();
 	
 		userId=user.getId();
 		ExternalInvite = externalInviteRepository.findByStatusAndUserAndFamilyDistinctByPhone(userId,familyId);
 	//	ExternalInvite = externalInviteRepository.findDistinctByPhone();
-		logger.info("FamilyServiceImpl getExternalInviteByInviter ---End---");
+		logger.info("FamilyServiceImpl getExternalInviteByInviter ---End---"+ExternalInvite);
 		return ExternalInvite;
 		
 	}

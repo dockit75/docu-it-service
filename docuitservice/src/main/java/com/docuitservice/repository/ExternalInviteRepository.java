@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.docuitservice.model.Document;
 import com.docuitservice.model.ExternalInvite;
+import com.docuitservice.model.Family;
 import com.docuitservice.model.User;
 
 @Repository
@@ -26,5 +27,7 @@ public interface ExternalInviteRepository extends JpaRepository<ExternalInvite, 
 	//@Query(value = "select distinct(ei) from ExternalInvite ei where (ei.invited_by = :userId and ei.family_id =:familyId and ei.status = true)", nativeQuery = true)
 	@Query(value = "select distinct(ei.phone) from ExternalInvite ei where (ei.user.id = :userId and ei.family.id =:familyId and ei.status = true and ei.phone is not null)")
 	List<String> findByStatusAndUserAndFamilyDistinctByPhone(@Param("userId") String userId,@Param("familyId") String familyId);
+
+	List<ExternalInvite> findByFamily(Family family);
 	
 }

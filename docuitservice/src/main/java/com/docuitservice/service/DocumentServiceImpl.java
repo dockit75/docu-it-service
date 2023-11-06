@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,6 +138,8 @@ public class DocumentServiceImpl implements DocumentService{
 		//String documentSize = saveDocumentRequest.getDocumentSize();
 		List<String> sharedUsers = saveDocumentRequest.getSharedMembers();
 		
+		Optional<Family> familyOpt = null;
+		
 		List<DocumentDetails> documentDetails = saveDocumentRequest.getDocumentDetails();
 		for(DocumentDetails documentDetail : documentDetails) {
 		String documentName = documentDetail.getDocumentName();
@@ -188,7 +191,8 @@ public class DocumentServiceImpl implements DocumentService{
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 			if(StringUtils.hasText(familyId) && null != sharedUsers && !sharedUsers.isEmpty() && sharedUsers.size()>0 && StringUtils.hasText(sharedUsers.get(0))) {
-				family = familyRepository.findById(familyId);
+				familyOpt = familyRepository.findById(familyId);
+				family = familyOpt.get();
 			}/*if(null== family){
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -283,11 +287,12 @@ public class DocumentServiceImpl implements DocumentService{
 			}
 		
 		if(null !=shareDocumentRequest.getFamilyId()) {
-			family = familyRepository.findById(shareDocumentRequest.getFamilyId());
-			if(null ==family) {
+			familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
+			if(null ==familyOpt|| (null !=familyOpt && familyOpt.isEmpty())) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NOT_FOUND,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
+			family = familyOpt.get();
 		}
 		if(null !=shareDocumentRequest.getDocumentId()) {
 			documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
@@ -400,7 +405,7 @@ public class DocumentServiceImpl implements DocumentService{
 	
 		for(Member member : members) {
 			if(null != member.getFamily() && null!= member.getUser()) {
-				docList = documentRepository.findByUserAndFamily(member.getUser(), member.getFamily());
+				docList = documentRepository.findByFamilyIdAndUserId(member.getFamily().getId(),member.getUser().getId());
 				deleteDocument(docList);
 			}
 		}
@@ -410,10 +415,13 @@ public class DocumentServiceImpl implements DocumentService{
 	
 	public void deleteDocument(List<Document> docList) {
 		logger.info("deleteDocument --->Begin");
-		for(Document document : docList) {
-			document.setDocumentStatus(false);
-			documentRepository.save(document);
-		}			
+		
+		List<String> documentIdList = new ArrayList<String>();
+		documentIdList = docList.stream().map(x->x.getId()).collect(Collectors.toList());
+		documentRepository.flush();
+		if(!documentIdList.isEmpty()) {
+			documentRepository.deleteAllByIdInBatch(iteratorToIterable(documentIdList.iterator()));
+		}
 		logger.info("deleteDocument --->End");
 	}
 
@@ -528,6 +536,7 @@ public class DocumentServiceImpl implements DocumentService{
 		List<Share> shareList = new ArrayList<Share>();
 		List<User> documentSharedToUsers = new ArrayList<User>();
 		Map<String,Object> documentSharedDetails = new HashMap<String, Object>();
+		
 		String responseStatus=null;
 	
 		if(!StringUtils.hasText(documentId)) {
@@ -541,8 +550,6 @@ public class DocumentServiceImpl implements DocumentService{
 		}
 		
 		Document document = documentOpt.get();
-		document.setDocumentStatus(false);
-		documentRepository.save(document);
 		shareList = shareRepository.findByDocumentId(documentId);
 		
 		List<String> shareIds = new ArrayList<String>();
@@ -556,8 +563,11 @@ public class DocumentServiceImpl implements DocumentService{
 	    }
 		
 		// TODO Auto-generated method stub
+	    //deleteing the document
+		documentRepository.delete(document);
 		
-		if(!document.isDocumentStatus()) {
+		documentOpt = documentRepository.findById(documentId);
+		if(!documentOpt.isPresent()) {
 			responseStatus=DockItConstants.DOCUMENT_DELETED_SUCCESFULLY;
 		}else {
 			responseStatus=DockItConstants.DOCUMENT_DELETION_UNSUCCESFULLY;

@@ -29,14 +29,18 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 
 	List<Document> findByUserIdAndDocumentStatus(String userId, boolean b);
 	
-	@Query(value = "select * from public.document where uploaded_by=:userId and status=true and date (\"document\".created_at)=(SELECT date(max(created_at)) FROM public.document where uploaded_by=:userId and status=true) order by document.id LIMIT 3 OFFSET 0", nativeQuery = true)
+	@Query(value = "select * from public.document where uploaded_by=:userId order by document.updated_at desc LIMIT 3 OFFSET 0", nativeQuery = true)
 	public List<Document> getMaxDateDocument(@Param("userId") String userId);
-
+	
 	@Query(value = "select * from document where (category_id = :id and uploaded_by = :userId and status = true) order by updated_at desc", nativeQuery = true)
 	List<Document> findByCategoryOrderByUpdatedAtDesc(@Param("id") String id, @Param("userId") String userId);
 	
 	List<Document> findByFamilyIdAndUserId(String familyId,String userId);
 
 	List<Document> findByUserAndFamily(User user, Family family);
+	
+	//List<Document> findByUserIdAndFamilyId(String familyId,String userId);
+	
+	List<Document> findByFamily(Family family);
 
 }
