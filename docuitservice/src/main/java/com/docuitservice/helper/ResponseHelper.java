@@ -74,6 +74,7 @@ public class ResponseHelper {
 			documentResponse.setCategoryName(category.getCategoryName());
 			documentResponse.setUploadedBy(document.getUser().getId());
 			documentResponse.setDocumentUrl(document.getUrl());
+			documentResponse.setPageCount(document.getPageCount());
 			if(document.getFamily() != null) {
 				documentResponse.setFamilyId(document.getFamily().getId());
 				documentResponse.setFamilyName(document.getFamily().getName());

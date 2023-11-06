@@ -146,6 +146,7 @@ public class DocumentServiceImpl implements DocumentService{
 		String documentUrl=documentDetail.getDocumentUrl();
 		String documentType = documentDetail.getDocumentType();
 		String documentSize = documentDetail.getDocumentSize();
+		Integer documentPageCount = documentDetail.getPageCount();
 		User user =null;
 		Document doc =null;  
 		Family family = null;
@@ -236,6 +237,7 @@ public class DocumentServiceImpl implements DocumentService{
 				 docModel.setUser(user);
 				 docModel.setCreatedAt(currentTimeStamp);
 				 docModel.setUpdatedAt(currentTimeStamp);
+				 docModel.setPageCount(documentPageCount);
 				 doc =  documentRepository.save(docModel);
 				 if(!sharedList.isEmpty()) {
 				 saveShareDetails(doc,sharedList,currentTimeStamp);

@@ -27,5 +27,7 @@ public class DocumentResponse {
 	
 	private String updatedDate;
 
+	private Integer pageCount;
+
 
 }
