@@ -1,5 +1,9 @@
 package com.docuitservice.response;
 
+import java.util.List;
+
+import com.docuitservice.model.Share;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,5 +33,6 @@ public class DocumentResponse {
 
 	private Integer pageCount;
 
+	private Long documentSize;
 
 }

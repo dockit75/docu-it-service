@@ -17,8 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.docuitservice.exception.BusinessException;
 import com.docuitservice.helper.ResponseHelper;
+import com.docuitservice.model.Document;
 import com.docuitservice.model.ExternalInvite;
 import com.docuitservice.model.User;
+import com.docuitservice.repository.DocumentRepository;
 import com.docuitservice.repository.ExternalInviteRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
@@ -55,6 +57,9 @@ public class AuthServiceImpl implements AuthService {
 	
 	@Autowired
 	private ExternalInviteRepository externalInviteRepository;
+	
+	@Autowired
+	DocumentRepository documentRepository;
 
 	@Override
 	public Response signUpUser(SignUpRequest signUpRequest) throws Exception {
@@ -433,6 +438,7 @@ public class AuthServiceImpl implements AuthService {
 		Util.validateRequiredField(updateProfileRequest.getName(), ErrorConstants.NAME_IS_REQUIRED);
 		Util.validateRequiredField(updateProfileRequest.getUserId(), ErrorConstants.USER_ID_IS_REQUIRED);
 		Util.validateRequiredField(updateProfileRequest.getGender(), ErrorConstants.GENDER_IS_REQUIRED);
+		Util.validateRequiredField(updateProfileRequest.getImageUrl(), ErrorConstants.PROFILE_IMAGE_FILE_IS_REQUIRED);		
 		if (!Util.isValidNameFormat(updateProfileRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_NAME,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -448,7 +454,8 @@ public class AuthServiceImpl implements AuthService {
 			user.setName(updateProfileRequest.getName());
 			user.setGender(updateProfileRequest.getGender());
 			user.setUpdatedAt(currentTimeStamp);
-			userRepository.save(user);
+			user.setImageUrl(updateProfileRequest.getImageUrl());
+			userRepository.save(user);								 
 			responseObjectsMap.put("userDetails", user);
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAILS_NOT_FOUND,

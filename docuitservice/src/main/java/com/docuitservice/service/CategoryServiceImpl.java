@@ -15,9 +15,11 @@ import com.docuitservice.exception.BusinessException;
 import com.docuitservice.helper.ResponseHelper;
 import com.docuitservice.model.Category;
 import com.docuitservice.model.Document;
+import com.docuitservice.model.Share;
 import com.docuitservice.model.User;
 import com.docuitservice.repository.CategoryRepository;
 import com.docuitservice.repository.DocumentRepository;
+import com.docuitservice.repository.ShareRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.CategoryRequest;
 import com.docuitservice.request.EditCategoryRequest;
@@ -43,6 +45,9 @@ public class CategoryServiceImpl implements CategoryService {
 	
 	@Autowired
 	private DocumentRepository documentRepository;
+	
+	@Autowired
+	ShareRepository shareRepository;
 
 	@Override
 	public Response addCategory(@Valid CategoryRequest categoryRequest) throws Exception {
@@ -171,10 +176,17 @@ public class CategoryServiceImpl implements CategoryService {
 		}
 		List<Document> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
 		List<DocumentResponse> documentDetailsList = ResponseHelper.setDocumentResponsetList(documents, category);
+		List<Share> shareDocumentList = new ArrayList<Share>();
+		for (Document document : documents) {
+			shareDocumentList = shareRepository.findByDocumentId(document.getId());
+			responseObjectsMap.put("shareDocumentList", shareDocumentList);
+		}
 		responseObjectsMap.put("documentDetailsList", documentDetailsList);
 		responseObjectsMap.put("totalCount", documentDetailsList.size());
 		logger.info("CategoryServiceImpl userCategoryDocuments ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
+	
+	
 }

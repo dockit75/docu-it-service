@@ -460,26 +460,33 @@ public class DocumentServiceImpl implements DocumentService{
 	@Override
 	public Response getDocumentDetails(String documentId) throws Exception {
 		logger.info("getDocumentDetails --->Begin");
-		Optional<Document> documentOpt= null;
+		Optional<Document> documentOpt = null;
+		Map<String, Object> documentDtlsmap = new HashMap<String, Object>();
 		List<Share> shareList = new ArrayList<Share>();
 		List<User> documentSharedToUsers = new ArrayList<User>();
-		Map<String,Object> documentSharedDetails = new HashMap<String, Object>();
-	
-		if(!StringUtils.hasText(documentId)) {
+		Map<String, Object> documentSharedDetails = new HashMap<String, Object>();
+
+		if (!StringUtils.hasText(documentId)) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		documentOpt = documentRepository.findById(documentId);
-		if(documentOpt.isEmpty()) {
+		if (documentOpt.isEmpty()) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		
-		
-		// TODO Auto-generated method stub
+		documentDtlsmap.put("documentDetails", documentOpt.get());
+		documentDtlsmap.put("sharedDetails", getShareDetails(documentId));
 		logger.info("getDocumentDetails --->End");
-		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentOpt.get() , 200,
+		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentDtlsmap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
+	}
+
+	public List<Share> getShareDetails(String documentId) throws Exception {
+		List<Share> shareDtls = new ArrayList<>();
+		shareDtls = shareRepository.findByDocumentId(documentId);
+
+		return shareDtls;
 	}
 
 

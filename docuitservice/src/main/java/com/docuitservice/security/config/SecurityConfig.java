@@ -47,7 +47,7 @@ public class SecurityConfig {
 						"/auth/forgotPin", "/auth/verifyPin", "/auth/changePin", "/auth/adminLogin", "/auth/resendOtp")
 				.permitAll().requestMatchers("/auth/*").authenticated().requestMatchers("/family/*").authenticated()
 				.requestMatchers("/category/**").authenticated().requestMatchers("/dashboard/*").authenticated()
-				.requestMatchers("/document/*").authenticated().requestMatchers("/image/*").authenticated()
+				.requestMatchers("/document/*").authenticated()
 				.requestMatchers("/actuator/health/**").permitAll().and()
 				.authorizeHttpRequests().and().sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
