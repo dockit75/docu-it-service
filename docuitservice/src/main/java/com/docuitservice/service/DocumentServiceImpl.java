@@ -152,6 +152,7 @@ public class DocumentServiceImpl implements DocumentService{
 		Family family = null;
 		Category category = null;
 		boolean memberMatch = false;
+		Member adminMember = null;
 		List<Member> sharedList = new ArrayList<>();
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		
@@ -211,11 +212,17 @@ public class DocumentServiceImpl implements DocumentService{
 					}
 					docSharedList.add(sharedUser);
 				}
+				//Adding member id of the uploader Begin
+				adminMember = memberRepository.findByUserAndFamily(user, family);
+				if(null !=adminMember) {
+				docSharedList.add(adminMember.getId());
+				}
+				//Adding member id of the uploader End
 				sharedList =  memberRepository.findByIdIn(docSharedList);
-				if(sharedUsers.size()!=sharedList.size()) {
+				/*if(sharedUsers.size()!=sharedList.size()) {
 					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
 							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-				}
+				}*/
 				for(Member shareMember: sharedList) {
 					if(shareMember.getFamily().getId().equalsIgnoreCase(family.getId())) {
 						memberMatch = true;
@@ -240,7 +247,7 @@ public class DocumentServiceImpl implements DocumentService{
 				 docModel.setPageCount(documentPageCount);
 				 doc =  documentRepository.save(docModel);
 				 if(!sharedList.isEmpty()) {
-				 saveShareDetails(doc,sharedList,currentTimeStamp);
+				 saveShareDetails(doc,sharedList);
 				 }
 		}
 				 logger.info("saveDocumentDetails --->End");
@@ -257,36 +264,57 @@ public class DocumentServiceImpl implements DocumentService{
 		Optional<Document> documentOpt= null;
 		List<Member> memberList = new ArrayList<>();
 		List<Member> validMemberList = new ArrayList<>();
-		List<String> memberIds = new ArrayList<>();
+		List<String> provideAccessmemberIds = new ArrayList<>();
+		List<String> revokeAccessmemberIds = new ArrayList<>();
+		List<Member> validProvideAccessmembers = new ArrayList<>();
+		List<Member> validRevokeAccessmembers = new ArrayList<>();
 		Family family = null;
 		String familyId = null;
 		User user = null;
-		if((StringUtils.hasText(shareDocumentRequest.getCategoryId())|| StringUtils.hasText(shareDocumentRequest.getDocumentName())) && !StringUtils.hasText(shareDocumentRequest.getAction()) && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
+		if((StringUtils.hasText(shareDocumentRequest.getCategoryId())|| StringUtils.hasText(shareDocumentRequest.getDocumentName())) && (null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty()))  && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
 			return updateDocumentCategory(shareDocumentRequest);
 		}else {
 		//Document document =  shareDocumentRequest.getDocumentId();
-		if(null ==shareDocumentRequest.getDocumentId() || null==shareDocumentRequest.getFamilyId() || null==shareDocumentRequest.getMemberIds() || shareDocumentRequest.getMemberIds().isEmpty() || !StringUtils.hasText(shareDocumentRequest.getAction()) || !(shareDocumentRequest.getAction().equalsIgnoreCase("add") || shareDocumentRequest.getAction().equalsIgnoreCase("revoke"))) {
+		if(null ==shareDocumentRequest.getDocumentId() || null==shareDocumentRequest.getFamilyId() || ((null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty())))) {
 			
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 	
-		if(null !=shareDocumentRequest.getMemberIds()) {
-			for(String memberId : shareDocumentRequest.getMemberIds()) {
-				memberIds.add(memberId);
+		if(null !=shareDocumentRequest.getProvideAccess()) {
+			for(String memberId : shareDocumentRequest.getProvideAccess()) {
+				provideAccessmemberIds.add(memberId);
 			}
-			Iterator<String> iterator = 	memberIds.iterator();
+			Iterator<String> iterator = 	provideAccessmemberIds.iterator();
 			memberList = memberRepository.findAllById(iteratorToIterable(iterator));
-			if(memberList.isEmpty() || memberList.size()!=memberIds.size()) {
+			if(memberList.isEmpty() || memberList.size()!= shareDocumentRequest.getProvideAccess().size()) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 			for(Member members: memberList) {
 				if(members.getInviteStatus().equalsIgnoreCase("accepted") ) {
-					validMemberList.add(members);
+					validProvideAccessmembers.add(members);
 				}
 			}
 			}
+		
+		if(null !=shareDocumentRequest.getRevokeAccess()) {
+			for(String memberId : shareDocumentRequest.getRevokeAccess()) {
+				revokeAccessmemberIds.add(memberId);
+			}
+			Iterator<String> iterator = 	revokeAccessmemberIds.iterator();
+			memberList = memberRepository.findAllById(iteratorToIterable(iterator));
+			if(memberList.isEmpty() || memberList.size()!= shareDocumentRequest.getRevokeAccess().size()) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+			for(Member members: memberList) {
+				if(members.getInviteStatus().equalsIgnoreCase("accepted") ) {
+					validRevokeAccessmembers.add(members);
+				}
+			}
+			}
+		
 		
 		if(null !=shareDocumentRequest.getFamilyId()) {
 			familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
@@ -327,19 +355,16 @@ public class DocumentServiceImpl implements DocumentService{
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}*/
 		
-		Date currentTimeStamp = new Date(System.currentTimeMillis());
-		if(shareDocumentRequest.getAction().equalsIgnoreCase("add")) {
-			saveShareDetails(documentOpt.get(), memberList, currentTimeStamp);
-			return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_SHARED_SUCCESFULLY, "", 200,
-					DockItConstants.RESPONSE_SUCCESS);
-		}else if(shareDocumentRequest.getAction().equalsIgnoreCase("revoke")) {
-			removeDocumentAccess(documentOpt.get(), memberList,memberIds);
-			return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_REVOKED_SUCCESFULLY, "", 200,
-					DockItConstants.RESPONSE_SUCCESS);
+		if(null != shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && !validProvideAccessmembers.isEmpty()) {
+			saveShareDetails(documentOpt.get(), validProvideAccessmembers);
+		}if(null!=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && !validRevokeAccessmembers.isEmpty()) {
+			removeDocumentAccess(documentOpt.get(), validRevokeAccessmembers);
 		}
+		
 	}
 		logger.info("shareDocument --->End");
-		return null;
+		return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_UPDATED_SUCCESFULLY, "", 200,
+				DockItConstants.RESPONSE_SUCCESS);
 	
 	}
 
@@ -353,9 +378,10 @@ public class DocumentServiceImpl implements DocumentService{
             }
         };
     }
-	private void saveShareDetails(Document document, List<Member> memberList,Date currentTimeStamp) {
+	private void saveShareDetails(Document document, List<Member> memberList) {
 		logger.info("saveShareDetails --->Begin");
-		List<Share> shareList =new ArrayList<>(); 
+		List<Share> shareList =new ArrayList<>();
+		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		for(Member member : memberList) {
 		Share share = new Share();
 		share.setId(UUID.randomUUID().toString());
@@ -370,7 +396,7 @@ public class DocumentServiceImpl implements DocumentService{
 	    shareRepository.saveAll(shareList);
 	    logger.info("saveShareDetails --->End");
 	}
-	private void removeDocumentAccess(Document document, List<Member> memberList, List<String> memberIds) {
+	private void removeDocumentAccess(Document document, List<Member> memberList) {
 		logger.info("saveShareDetails --->Begin");
 		List<Share> shareList =new ArrayList<>(); 
 		shareList = shareRepository.findAllByDocumentAndMemberIn(document,memberList);
