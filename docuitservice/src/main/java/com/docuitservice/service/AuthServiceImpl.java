@@ -438,7 +438,7 @@ public class AuthServiceImpl implements AuthService {
 		Util.validateRequiredField(updateProfileRequest.getName(), ErrorConstants.NAME_IS_REQUIRED);
 		Util.validateRequiredField(updateProfileRequest.getUserId(), ErrorConstants.USER_ID_IS_REQUIRED);
 		Util.validateRequiredField(updateProfileRequest.getGender(), ErrorConstants.GENDER_IS_REQUIRED);
-		Util.validateRequiredField(updateProfileRequest.getImageUrl(), ErrorConstants.PROFILE_IMAGE_FILE_IS_REQUIRED);		
+//		Util.validateRequiredField(updateProfileRequest.getImageUrl(), ErrorConstants.PROFILE_IMAGE_FILE_IS_REQUIRED);		
 		if (!Util.isValidNameFormat(updateProfileRequest.getName())) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_NAME,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);

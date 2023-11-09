@@ -4,6 +4,7 @@
 package com.docuitservice.repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,8 +33,9 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 	@Query(value = "select * from public.document where uploaded_by=:userId order by document.updated_at desc LIMIT 3 OFFSET 0", nativeQuery = true)
 	public List<Document> getMaxDateDocument(@Param("userId") String userId);
 	
-	@Query(value = "select * from document where (category_id = :id and uploaded_by = :userId and status = true) order by updated_at desc", nativeQuery = true)
-	List<Document> findByCategoryOrderByUpdatedAtDesc(@Param("id") String id, @Param("userId") String userId);
+	@Query(value = "SELECT d.*, s.* FROM document AS d INNER JOIN share AS s ON s.document_id = d.id INNER JOIN member AS m ON s.member_id = m.id WHERE d.category_id = :categoryId AND m.user_id = :userId", nativeQuery = true)
+	List<Map<String, String>> findByCategoryOrderByUpdatedAtDesc(@Param("categoryId") String categoryId, @Param("userId") String userId);
+
 	
 	List<Document> findByFamilyIdAndUserId(String familyId,String userId);
 

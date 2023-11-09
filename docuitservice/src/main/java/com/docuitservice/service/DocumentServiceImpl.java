@@ -275,13 +275,19 @@ public class DocumentServiceImpl implements DocumentService{
 			return updateDocumentCategory(shareDocumentRequest);
 		}else {
 		//Document document =  shareDocumentRequest.getDocumentId();
-		if(null ==shareDocumentRequest.getDocumentId() || null==shareDocumentRequest.getFamilyId() || ((null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty())))) {
+		if(null ==shareDocumentRequest.getDocumentId() || null==shareDocumentRequest.getFamilyId() || 
+				((null==shareDocumentRequest.getProvideAccess() || ((null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty()) 
+				|| (null!=shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && shareDocumentRequest.getProvideAccess().size()==0 )
+				|| (null!=shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && shareDocumentRequest.getProvideAccess().size()>0 && !StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0)))))
+				&& (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty())
+				|| (null!=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && shareDocumentRequest.getRevokeAccess().size()==0)
+				|| (null!=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && shareDocumentRequest.getRevokeAccess().size()>0 && !StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0)))))) {
 			
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 	
-		if(null !=shareDocumentRequest.getProvideAccess()) {
+		if(null !=shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && shareDocumentRequest.getProvideAccess().size()>0 && StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0))) {
 			for(String memberId : shareDocumentRequest.getProvideAccess()) {
 				provideAccessmemberIds.add(memberId);
 			}
@@ -298,7 +304,7 @@ public class DocumentServiceImpl implements DocumentService{
 			}
 			}
 		
-		if(null !=shareDocumentRequest.getRevokeAccess()) {
+		if(null !=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && shareDocumentRequest.getRevokeAccess().size()>0 && StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0))) {
 			for(String memberId : shareDocumentRequest.getRevokeAccess()) {
 				revokeAccessmemberIds.add(memberId);
 			}
@@ -314,7 +320,6 @@ public class DocumentServiceImpl implements DocumentService{
 				}
 			}
 			}
-		
 		
 		if(null !=shareDocumentRequest.getFamilyId()) {
 			familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());

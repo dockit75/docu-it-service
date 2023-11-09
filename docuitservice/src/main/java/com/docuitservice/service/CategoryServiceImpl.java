@@ -174,15 +174,10 @@ public class CategoryServiceImpl implements CategoryService {
 			throw new BusinessException(DockItConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
 					DockItConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Document> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
-		List<DocumentResponse> documentDetailsList = ResponseHelper.setDocumentResponsetList(documents, category);
-		List<Share> shareDocumentList = new ArrayList<Share>();
-		for (Document document : documents) {
-			shareDocumentList = shareRepository.findByDocumentId(document.getId());
-			responseObjectsMap.put("shareDocumentList", shareDocumentList);
-		}
-		responseObjectsMap.put("documentDetailsList", documentDetailsList);
-		responseObjectsMap.put("totalCount", documentDetailsList.size());
+		List<Map<String, String>> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
+        
+        responseObjectsMap.put("documentDetailsList", documents);
+		responseObjectsMap.put("totalCount", documents.size());
 		logger.info("CategoryServiceImpl userCategoryDocuments ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
