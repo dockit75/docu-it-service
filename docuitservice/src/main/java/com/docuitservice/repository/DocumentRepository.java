@@ -33,7 +33,7 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 	@Query(value = "select * from public.document where uploaded_by=:userId order by document.updated_at desc LIMIT 3 OFFSET 0", nativeQuery = true)
 	public List<Document> getMaxDateDocument(@Param("userId") String userId);
 	
-	@Query(value = "SELECT d.*, s.* FROM document AS d INNER JOIN share AS s ON s.document_id = d.id INNER JOIN member AS m ON s.member_id = m.id WHERE d.category_id = :categoryId AND m.user_id = :userId", nativeQuery = true)
+	@Query(value = "SELECT d.*, s.* FROM document AS d INNER JOIN share AS s ON s.document_id = d.id INNER JOIN member AS m ON s.member_id = m.id WHERE d.category_id = :categoryId AND m.user_id = :userId   union select di.*,sh.* from document AS di left outer JOIN share AS sh ON sh.document_id = di.id where di.uploaded_by= :userId and di.family_id is null", nativeQuery = true)
 	List<Map<String, String>> findByCategoryOrderByUpdatedAtDesc(@Param("categoryId") String categoryId, @Param("userId") String userId);
 
 	
