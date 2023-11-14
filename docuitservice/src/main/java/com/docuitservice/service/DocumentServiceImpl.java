@@ -496,6 +496,7 @@ public class DocumentServiceImpl implements DocumentService{
 		List<Share> shareList = new ArrayList<Share>();
 		List<User> documentSharedToUsers = new ArrayList<User>();
 		Map<String, Object> documentSharedDetails = new HashMap<String, Object>();
+		List<String> memberIds = new ArrayList<>();
 
 		if (!StringUtils.hasText(documentId)) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
@@ -506,8 +507,16 @@ public class DocumentServiceImpl implements DocumentService{
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
+		List<Share> shareDtls = shareRepository.findByDocumentId(documentId);
+		for (Share share : shareDtls) {
+	        Member member = share.getMember();
+	        if (member != null) {
+	            memberIds.add(member.getId());
+	        }
+	    }
 		documentDtlsmap.put("documentDetails", documentOpt.get());
-		documentDtlsmap.put("sharedDetails", getShareDetails(documentId));
+		documentDtlsmap.put("sharedDetails", shareDtls);
+		documentDtlsmap.put("memberIds", memberIds);
 		logger.info("getDocumentDetails --->End");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentDtlsmap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
