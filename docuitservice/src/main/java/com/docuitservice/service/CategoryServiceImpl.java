@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,12 @@ import com.docuitservice.exception.BusinessException;
 import com.docuitservice.helper.ResponseHelper;
 import com.docuitservice.model.Category;
 import com.docuitservice.model.Document;
+import com.docuitservice.model.Family;
 import com.docuitservice.model.Share;
 import com.docuitservice.model.User;
 import com.docuitservice.repository.CategoryRepository;
 import com.docuitservice.repository.DocumentRepository;
+import com.docuitservice.repository.FamilyRepository;
 import com.docuitservice.repository.ShareRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.CategoryRequest;
@@ -48,6 +51,10 @@ public class CategoryServiceImpl implements CategoryService {
 	
 	@Autowired
 	ShareRepository shareRepository;
+	
+	@Autowired
+	FamilyRepository familyRepository;
+	   
 
 	@Override
 	public Response addCategory(@Valid CategoryRequest categoryRequest) throws Exception {
@@ -174,13 +181,100 @@ public class CategoryServiceImpl implements CategoryService {
 			throw new BusinessException(DockItConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
 					DockItConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Map<String, String>> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
+		List<Map<String,Object>> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
         
-        responseObjectsMap.put("documentDetailsList", documents);
+        responseObjectsMap.put("documentDetailsList", documentResponseMapper(documents));
 		responseObjectsMap.put("totalCount", documents.size());
 		logger.info("CategoryServiceImpl userCategoryDocuments ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
+	}
+	
+	
+	private List<DocumentResponse> documentResponseMapper(List<Map<String,Object>> myDocumentList) {
+		// TODO Auto-generated method stub
+		logger.info("documentResponseMapper --->Begin");
+		List<DocumentResponse> docResponse= new ArrayList<>();
+		 
+		for(Map<String,Object> documentMap : myDocumentList) {
+			DocumentResponse documentResponse = documentResponseBuilder(documentMap);
+			docResponse.add(documentResponse);
+		}
+		logger.info("documentResponseMapper --->End");
+		return docResponse;
+	}
+
+
+	/**
+	 * @param formatter
+	 * @param document
+	 * @return
+	 */
+	private DocumentResponse documentResponseBuilder(Map<String,Object> documentMap) {
+		logger.info("documentResponseBuilder --->Begin");
+		DocumentResponse documentResponse = new DocumentResponse();
+		Optional<Family> familyOpt = null;
+		Family family = null;
+		
+		documentResponse.setDocumentId(String.valueOf(documentMap.get("documetid")));
+		documentResponse.setDocumentName(String.valueOf(documentMap.get("documentname")));
+		if (null != documentMap.get("categoryid")) {
+			Category category = categoryRepository.findById(String.valueOf(documentMap.get("categoryid")));
+			if (null != category) {
+				documentResponse.setCategoryName(category.getCategoryName());
+			}
+		}
+		if (null != documentMap.get("uploadedby")) {
+			documentResponse.setUploadedBy(String.valueOf(documentMap.get("uploadedby")));
+		}
+		if (null != documentMap.get("url")) {
+			documentResponse.setDocumentUrl(String.valueOf(documentMap.get("url")));
+		}		 
+		if(null!=documentMap.get("familyid")) {
+		documentResponse.setFamilyId(String.valueOf(documentMap.get("familyid")));
+		familyOpt = familyRepository.findById(String.valueOf(documentMap.get("familyid")));
+		family = familyOpt.get();
+		documentResponse.setFamilyName(family.getName());
+		}
+		if(null!=documentMap.get("documentCreateDate")) {
+			documentResponse.setCreatedDate(String.valueOf(documentMap.get("documentCreateDate")));
+		}
+		if(null!=documentMap.get("documentUpdatedDate")) {
+			documentResponse.setUpdatedDate(String.valueOf(documentMap.get("documentUpdatedDate")));
+		}
+		if(null!=documentMap.get("pageCount")) {
+			documentResponse.setPageCount(Integer.parseInt(String.valueOf(documentMap.get("pageCount"))));
+		}
+		if(null!=documentMap.get("documenttype")) {
+			documentResponse.setDocumentType(String.valueOf(documentMap.get("documenttype")));
+			}
+		if(null!=documentMap.get("uplodedbyname")) {
+			documentResponse.setUploadedByName(String.valueOf(documentMap.get("uplodedbyname")));
+			}
+		if(null!=documentMap.get("documentsize")) {
+			  documentResponse.setDocumentSize(Long.parseLong(String.valueOf(documentMap.get("documentsize")))); 
+			}
+		if(null!=documentMap.get("shareId")) {
+			  documentResponse.setShareId(String.valueOf(documentMap.get("shareId"))); 
+			}
+		if(null!=documentMap.get("shareDocumentId")) {
+			  documentResponse.setShareDocumentId(String.valueOf(documentMap.get("shareDocumentId"))); 
+			}
+		if(null!=documentMap.get("shareMemberId")) {
+			  documentResponse.setShareMemberId(String.valueOf(documentMap.get("shareMemberId"))); 
+			}
+		if(null!=documentMap.get("sharedBy")) {
+			  documentResponse.setSharedBy(String.valueOf(documentMap.get("sharedBy"))); 
+			}
+		if(null!=documentMap.get("shareCreatedDate")) {
+			  documentResponse.setShareCreatedDate(String.valueOf(documentMap.get("shareCreatedDate"))); 
+			}
+		if(null!=documentMap.get("sharedUpdatedDate")) {
+			  documentResponse.setSharedUpdatedDate(String.valueOf(documentMap.get("sharedUpdatedDate"))); 
+			}
+		
+		logger.info("documentResponseBuilder --->End");
+		return documentResponse;
 	}
 	
 	

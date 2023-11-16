@@ -92,4 +92,5 @@ public class ErrorConstants {
 	public static final String MEMBER_ALREADY_IN_THIS_FAMILY = "is already invited for this family";
 	public static final String INVITED_BY_IS_INVALID = "Invited User by is invalid or null";
 	public static final String INVALID_ADMIN_ID = "Admin id is not valid";
+	public static final String FAMILY_CANNOT_BE_MODIFIED = "Family can not be modified for a document";
 }

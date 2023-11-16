@@ -32,7 +32,24 @@ public class DocumentResponse {
 	private String updatedDate;
 
 	private Integer pageCount;
-
+	
+	private String documentType;
+	
+	private String uploadedByName;
+	
 	private Long documentSize;
+	
+	private String shareId;
+	
+	private String shareDocumentId;
+
+	private String shareMemberId;
+	
+	private String sharedBy;
+	
+	private String shareCreatedDate;
+	
+	private String sharedUpdatedDate;
+	
 
 }

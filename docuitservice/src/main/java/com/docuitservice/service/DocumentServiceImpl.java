@@ -271,6 +271,7 @@ public class DocumentServiceImpl implements DocumentService{
 		Family family = null;
 		String familyId = null;
 		User user = null;
+		Document document = null;
 		if((StringUtils.hasText(shareDocumentRequest.getCategoryId())|| StringUtils.hasText(shareDocumentRequest.getDocumentName())) && (null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty()))  && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
 			return updateDocumentCategory(shareDocumentRequest);
 		}else {
@@ -320,7 +321,14 @@ public class DocumentServiceImpl implements DocumentService{
 				}
 			}
 			}
-		
+		if(null !=shareDocumentRequest.getDocumentId()) {
+			documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
+			if(documentOpt.isEmpty()) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+			document = documentOpt.get();
+		}
 		if(null !=shareDocumentRequest.getFamilyId()) {
 			familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
 			if(null ==familyOpt|| (null !=familyOpt && familyOpt.isEmpty())) {
@@ -328,12 +336,16 @@ public class DocumentServiceImpl implements DocumentService{
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
 			family = familyOpt.get();
-		}
-		if(null !=shareDocumentRequest.getDocumentId()) {
-			documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
-			if(documentOpt.isEmpty()) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			if(null != document ) {
+				if(null ==document.getFamily()) {
+						document.setFamily(family);
+						documentRepository.save(document);
+				}else {
+					if(!document.getFamily().getId().equalsIgnoreCase(family.getId())) {
+						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_CANNOT_BE_MODIFIED,
+								ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+					}
+				}
 			}
 		}
 		
@@ -458,7 +470,7 @@ public class DocumentServiceImpl implements DocumentService{
 		logger.info("deleteDocument --->End");
 	}
 
-	@Override
+	/*@Override
 	public Response getDocumentShared(String documentId) throws Exception {
 		logger.info("getDocumentShared --->Begin");
 		Optional<Document> documentOpt= null;
@@ -486,7 +498,7 @@ public class DocumentServiceImpl implements DocumentService{
 		logger.info("getDocumentShared --->End");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentSharedDetails , 200,
 				DockItConstants.RESPONSE_SUCCESS);
-	}
+	}*/
 	
 	@Override
 	public Response getDocumentDetails(String documentId) throws Exception {

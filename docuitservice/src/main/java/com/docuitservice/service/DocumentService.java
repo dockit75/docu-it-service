@@ -20,7 +20,7 @@ public interface DocumentService {
 	
 	public Response shareDocument(ShareDocumentRequest shareDocumentRequest) throws Exception;
 		
-	public Response getDocumentShared(String documentId) throws Exception;
+	//public Response getDocumentShared(String documentId) throws Exception;
 	
 	public Response getDocumentDetails(String documentId) throws Exception;
 
