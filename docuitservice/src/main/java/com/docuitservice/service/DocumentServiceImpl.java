@@ -340,6 +340,12 @@ public class DocumentServiceImpl implements DocumentService{
 				if(null ==document.getFamily()) {
 						document.setFamily(family);
 						documentRepository.save(document);
+						Member member = null;
+					member = 	memberRepository.findByUserAndFamily(document.getUser(),family);
+					if(null !=member) {
+						validProvideAccessmembers.add(member);
+						
+					}
 				}else {
 					if(!document.getFamily().getId().equalsIgnoreCase(family.getId())) {
 						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_CANNOT_BE_MODIFIED,
