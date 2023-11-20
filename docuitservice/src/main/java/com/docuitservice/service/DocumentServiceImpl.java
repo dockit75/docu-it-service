@@ -258,137 +258,176 @@ public class DocumentServiceImpl implements DocumentService{
 	public Response shareDocument(ShareDocumentRequest shareDocumentRequest) throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("shareDocument --->Begin");
-		
-		Optional<Family> familyOpt = null; 
-		Optional<Member> memberOpt= null;
-		Optional<Document> documentOpt= null;
+
+		Optional<Family> familyOpt = null;
+		Optional<Member> memberOpt = null;
+		Optional<Document> documentOpt = null;
 		List<Member> memberList = new ArrayList<>();
 		List<Member> validMemberList = new ArrayList<>();
 		List<String> provideAccessmemberIds = new ArrayList<>();
 		List<String> revokeAccessmemberIds = new ArrayList<>();
 		List<Member> validProvideAccessmembers = new ArrayList<>();
 		List<Member> validRevokeAccessmembers = new ArrayList<>();
+		List<Share> existingSharedList = new ArrayList<>();
 		Family family = null;
 		String familyId = null;
 		User user = null;
 		Document document = null;
-		if((StringUtils.hasText(shareDocumentRequest.getCategoryId())|| StringUtils.hasText(shareDocumentRequest.getDocumentName())) && (null==shareDocumentRequest.getProvideAccess() || (null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty())) && (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty()))  && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
+		if ((StringUtils.hasText(shareDocumentRequest.getCategoryId())
+				|| StringUtils.hasText(shareDocumentRequest.getDocumentName()))
+				&& (null == shareDocumentRequest.getProvideAccess() || (null != shareDocumentRequest.getProvideAccess()
+						&& shareDocumentRequest.getProvideAccess().isEmpty()))
+				&& (null == shareDocumentRequest.getRevokeAccess() || (null != shareDocumentRequest.getRevokeAccess()
+						&& shareDocumentRequest.getRevokeAccess().isEmpty()))
+				&& !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
 			return updateDocumentCategory(shareDocumentRequest);
-		}else {
-		//Document document =  shareDocumentRequest.getDocumentId();
-		if(null ==shareDocumentRequest.getDocumentId() || null==shareDocumentRequest.getFamilyId() || 
-				((null==shareDocumentRequest.getProvideAccess() || ((null!=shareDocumentRequest.getProvideAccess() && shareDocumentRequest.getProvideAccess().isEmpty()) 
-				|| (null!=shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && shareDocumentRequest.getProvideAccess().size()==0 )
-				|| (null!=shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && shareDocumentRequest.getProvideAccess().size()>0 && !StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0)))))
-				&& (null==shareDocumentRequest.getRevokeAccess() || (null!=shareDocumentRequest.getRevokeAccess() && shareDocumentRequest.getRevokeAccess().isEmpty())
-				|| (null!=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && shareDocumentRequest.getRevokeAccess().size()==0)
-				|| (null!=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && shareDocumentRequest.getRevokeAccess().size()>0 && !StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0)))))) {
-			
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
-	
-		if(null !=shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && shareDocumentRequest.getProvideAccess().size()>0 && StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0))) {
-			for(String memberId : shareDocumentRequest.getProvideAccess()) {
-				provideAccessmemberIds.add(memberId);
-			}
-			Iterator<String> iterator = 	provideAccessmemberIds.iterator();
-			memberList = memberRepository.findAllById(iteratorToIterable(iterator));
-			if(memberList.isEmpty() || memberList.size()!= shareDocumentRequest.getProvideAccess().size()) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+		} else {
+			// Document document = shareDocumentRequest.getDocumentId();
+			if (null == shareDocumentRequest.getDocumentId() || null == shareDocumentRequest.getFamilyId()
+					|| ((null == shareDocumentRequest.getProvideAccess()
+							|| ((null != shareDocumentRequest.getProvideAccess()
+									&& shareDocumentRequest.getProvideAccess().isEmpty())
+									|| (null != shareDocumentRequest.getProvideAccess()
+											&& !shareDocumentRequest.getProvideAccess().isEmpty()
+											&& shareDocumentRequest.getProvideAccess().size() == 0)
+									|| (null != shareDocumentRequest.getProvideAccess()
+											&& !shareDocumentRequest.getProvideAccess().isEmpty()
+											&& shareDocumentRequest.getProvideAccess().size() > 0
+											&& !StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0)))))
+							&& (null == shareDocumentRequest.getRevokeAccess()
+									|| (null != shareDocumentRequest.getRevokeAccess()
+											&& shareDocumentRequest.getRevokeAccess().isEmpty())
+									|| (null != shareDocumentRequest.getRevokeAccess()
+											&& !shareDocumentRequest.getRevokeAccess().isEmpty()
+											&& shareDocumentRequest.getRevokeAccess().size() == 0)
+									|| (null != shareDocumentRequest.getRevokeAccess()
+											&& !shareDocumentRequest.getRevokeAccess().isEmpty()
+											&& shareDocumentRequest.getRevokeAccess().size() > 0
+											&& !StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0)))))) {
+
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
-			for(Member members: memberList) {
-				if(members.getInviteStatus().equalsIgnoreCase("accepted") ) {
-					validProvideAccessmembers.add(members);
+
+			if (null != shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty()
+					&& shareDocumentRequest.getProvideAccess().size() > 0
+					&& StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0))) {
+				for (String memberId : shareDocumentRequest.getProvideAccess()) {
+					provideAccessmemberIds.add(memberId);
+				}
+				Iterator<String> iterator = provideAccessmemberIds.iterator();
+				memberList = memberRepository.findAllById(iteratorToIterable(iterator));
+				if (memberList.isEmpty() || memberList.size() != shareDocumentRequest.getProvideAccess().size()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				for (Member members : memberList) {
+					if (members.getInviteStatus().equalsIgnoreCase("accepted")) {
+						validProvideAccessmembers.add(members);
+					}
 				}
 			}
-			}
-		
-		if(null !=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && shareDocumentRequest.getRevokeAccess().size()>0 && StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0))) {
-			for(String memberId : shareDocumentRequest.getRevokeAccess()) {
-				revokeAccessmemberIds.add(memberId);
-			}
-			Iterator<String> iterator = 	revokeAccessmemberIds.iterator();
-			memberList = memberRepository.findAllById(iteratorToIterable(iterator));
-			if(memberList.isEmpty() || memberList.size()!= shareDocumentRequest.getRevokeAccess().size()) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
-			for(Member members: memberList) {
-				if(members.getInviteStatus().equalsIgnoreCase("accepted") ) {
-					validRevokeAccessmembers.add(members);
+
+			if (null != shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty()
+					&& shareDocumentRequest.getRevokeAccess().size() > 0
+					&& StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0))) {
+				for (String memberId : shareDocumentRequest.getRevokeAccess()) {
+					revokeAccessmemberIds.add(memberId);
+				}
+				Iterator<String> iterator = revokeAccessmemberIds.iterator();
+				memberList = memberRepository.findAllById(iteratorToIterable(iterator));
+				if (memberList.isEmpty() || memberList.size() != shareDocumentRequest.getRevokeAccess().size()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				for (Member members : memberList) {
+					if (members.getInviteStatus().equalsIgnoreCase("accepted")) {
+						validRevokeAccessmembers.add(members);
+					}
 				}
 			}
+			if (null != shareDocumentRequest.getDocumentId()) {
+				documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
+				if (documentOpt.isEmpty()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				document = documentOpt.get();
 			}
-		if(null !=shareDocumentRequest.getDocumentId()) {
-			documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
-			if(documentOpt.isEmpty()) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
-			document = documentOpt.get();
-		}
-		if(null !=shareDocumentRequest.getFamilyId()) {
-			familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
-			if(null ==familyOpt|| (null !=familyOpt && familyOpt.isEmpty())) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NOT_FOUND,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
-			family = familyOpt.get();
-			if(null != document ) {
-				if(null ==document.getFamily()) {
+			if (null != shareDocumentRequest.getFamilyId()) {
+				familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
+				if (null == familyOpt || (null != familyOpt && familyOpt.isEmpty())) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NOT_FOUND,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				family = familyOpt.get();
+				if (null != document) {
+					if (null == document.getFamily()) {
 						document.setFamily(family);
 						documentRepository.save(document);
 						Member member = null;
-					member = 	memberRepository.findByUserAndFamily(document.getUser(),family);
-					if(null !=member) {
-						validProvideAccessmembers.add(member);
-						
-					}
-				}else {
-					if(!document.getFamily().getId().equalsIgnoreCase(family.getId())) {
-						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_CANNOT_BE_MODIFIED,
-								ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+						member = memberRepository.findByUserAndFamily(document.getUser(), family);
+						if (null != member && !validProvideAccessmembers.contains(member)) {
+							validProvideAccessmembers.add(member);
+
+						}
+					} else {
+						if (!document.getFamily().getId().equalsIgnoreCase(family.getId())) {
+							throw new BusinessException(ErrorConstants.RESPONSE_FAIL,
+									ErrorConstants.FAMILY_CANNOT_BE_MODIFIED, ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+						}
 					}
 				}
 			}
-		}
-		
-		if (null != family) {
-			familyId =family.getId();
-			for(Member member: memberList) {
-				if(!familyId.equalsIgnoreCase(member.getFamily().getId())) {
-					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
-							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+
+			if (null != family) {
+				familyId = family.getId();
+				for (Member member : memberList) {
+					if (!familyId.equalsIgnoreCase(member.getFamily().getId())) {
+						throw new BusinessException(ErrorConstants.RESPONSE_FAIL,
+								ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY, ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+					}
 				}
+
 			}
+
 			
+			/*if (StringUtils.hasText(shareDocumentRequest.getUpdatedBy())) {
+				user = userRepository.findById(shareDocumentRequest.getUpdatedBy());
+			}
+			if (null == user) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+			Member member = memberRepository.findByUserAndFamily(user, family);
+			if (null != member && !familyId.equalsIgnoreCase(member.getFamily().getId())) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.UPDATEDBY_NOT_FOUND_IN_FAMILY,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}*/
+			 
+
+			if (null != shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty()
+					&& !validProvideAccessmembers.isEmpty()) {
+				/*existingSharedList = shareRepository.findAllByDocumentAndMemberIn(documentOpt.get(),validProvideAccessmembers);
+				
+				List<Share> matchedResults = existingSharedList.stream().filter(existingList -> validProvideAccessmembers.stream().anyMatch(newList->newList.getId().equalsIgnoreCase(existingList.getMember().getId()))).collect(Collectors.toList());
+				
+				if(!matchedResults.isEmpty()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, "Document already shared to " + matchedResults.get(0).getMember().getUser().getName(),
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}*/
+				saveShareDetails(documentOpt.get(), validProvideAccessmembers);
+			}
+			if (null != shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty()
+					&& !validRevokeAccessmembers.isEmpty()) {
+				removeDocumentAccess(documentOpt.get(), validRevokeAccessmembers);
+			}
+
 		}
-		
-		/*if(StringUtils.hasText(shareDocumentRequest.getUpdatedBy())) {
-			user = userRepository.findById(shareDocumentRequest.getUpdatedBy());
-		}if(null==user) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
-		Member member = memberRepository.findByUserAndFamily(user,family);
-		if(null !=member && !familyId.equalsIgnoreCase(member.getFamily().getId())) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.UPDATEDBY_NOT_FOUND_IN_FAMILY,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}*/
-		
-		if(null != shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty() && !validProvideAccessmembers.isEmpty()) {
-			saveShareDetails(documentOpt.get(), validProvideAccessmembers);
-		}if(null!=shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty() && !validRevokeAccessmembers.isEmpty()) {
-			removeDocumentAccess(documentOpt.get(), validRevokeAccessmembers);
-		}
-		
-	}
 		logger.info("shareDocument --->End");
 		return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_UPDATED_SUCCESFULLY, "", 200,
 				DockItConstants.RESPONSE_SUCCESS);
-	
+
 	}
 
 
@@ -466,13 +505,21 @@ public class DocumentServiceImpl implements DocumentService{
 	
 	public void deleteDocument(List<Document> docList) {
 		logger.info("deleteDocument --->Begin");
-		
-		List<String> documentIdList = new ArrayList<String>();
+		List<Document> updatedDocList = new ArrayList<Document>();
+		/*List<String> documentIdList = new ArrayList<String>();
 		documentIdList = docList.stream().map(x->x.getId()).collect(Collectors.toList());
 		documentRepository.flush();
 		if(!documentIdList.isEmpty()) {
 			documentRepository.deleteAllByIdInBatch(iteratorToIterable(documentIdList.iterator()));
+		}*/
+		for (Document Doc : docList) {
+			Doc.setFamily(null);
+			updatedDocList.add(Doc);
 		}
+		if(!updatedDocList.isEmpty()) {
+			documentRepository.saveAll(iteratorToIterable(updatedDocList.iterator()));
+		}
+		
 		logger.info("deleteDocument --->End");
 	}
 
