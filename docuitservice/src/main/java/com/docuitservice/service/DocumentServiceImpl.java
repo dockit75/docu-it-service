@@ -155,6 +155,7 @@ public class DocumentServiceImpl implements DocumentService{
 		String documentUploadedBy = saveDocumentRequest.getUploadedBy();
 		//String documentSize = saveDocumentRequest.getDocumentSize();
 		List<String> sharedUsers = saveDocumentRequest.getSharedMembers();
+		List<Document> documentList = new ArrayList<>();
 		
 		Optional<Family> familyOpt = null;
 		
@@ -265,12 +266,13 @@ public class DocumentServiceImpl implements DocumentService{
 				 docModel.setUpdatedAt(currentTimeStamp);
 				 docModel.setPageCount(documentPageCount);
 				 doc =  documentRepository.save(docModel);
+				 documentList.add(doc);
 				 if(!sharedList.isEmpty()) {
 				 saveShareDetails(doc,sharedList);
 				 }
 		}
 				 logger.info("saveDocumentDetails --->End");
-				 return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_SAVED_SUCCESFULLY, "", 200,
+				 return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_SAVED_SUCCESFULLY, documentList, 200,
 							DockItConstants.RESPONSE_SUCCESS);
 	}
 	
