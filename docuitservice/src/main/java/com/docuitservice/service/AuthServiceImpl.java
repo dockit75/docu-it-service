@@ -20,8 +20,10 @@ import com.docuitservice.helper.ResponseHelper;
 import com.docuitservice.model.Document;
 import com.docuitservice.model.ExternalInvite;
 import com.docuitservice.model.User;
+import com.docuitservice.model.UserRanking;
 import com.docuitservice.repository.DocumentRepository;
 import com.docuitservice.repository.ExternalInviteRepository;
+import com.docuitservice.repository.UserRankingRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.ExternalInviteAcceptRequest;
 import com.docuitservice.request.ExternalInviteRequest;
@@ -60,6 +62,9 @@ public class AuthServiceImpl implements AuthService {
 	
 	@Autowired
 	DocumentRepository documentRepository;
+	
+	@Autowired
+	UserRankingRepository userRankingRepository;
 
 	@Override
 	public Response signUpUser(SignUpRequest signUpRequest) throws Exception {
@@ -105,6 +110,7 @@ public class AuthServiceImpl implements AuthService {
 				userService.sendVerificationOTP(user.getPhone(), user.getOtp());
 			}
 			validateExternalInviteAndAccept(user);
+			userCreateRanking(user);
 		} else {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_REQUEST,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -112,6 +118,23 @@ public class AuthServiceImpl implements AuthService {
 		logger.info("AuthServiceImpl signUpUser ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.USER_REGISTERED_SUCCESSFULLY, "", 200,
 				DockItConstants.RESPONSE_SUCCESS);
+	}
+
+	private void userCreateRanking(User user) {
+		logger.info("AuthServiceImpl userCreateRanking ---Start---");
+		UserRanking userRanking = userRankingRepository.findByUserId(user.getId());
+		if (userRanking == null) {
+			UserRanking userRankingVO = new UserRanking();
+			userRankingVO.setId(UUID.randomUUID().toString());
+			userRankingVO.setUserId(user.getId());
+			userRankingVO.setInsuranceDocument(0);
+			userRankingVO.setHealthDocument(0);
+			userRankingVO.setAssertDocument(0);
+			userRankingVO.setFinanceDocument(0);
+			userRankingVO.setReferralInvite(0);
+			userRankingRepository.save(userRankingVO);
+		}
+		logger.info("AuthServiceImpl userCreateRanking ---End---");
 	}
 
 	/**
@@ -608,6 +631,25 @@ public class AuthServiceImpl implements AuthService {
 		responseObjectsMap.put("token", token);
 		responseObjectsMap.put("userDetails", user);
 		logger.info("AuthServiceImpl adminLogin ---End---");
+		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
+				DockItConstants.RESPONSE_SUCCESS);
+	}
+
+	@Override
+	public Response getUserRanking(String userId) throws Exception {
+		logger.info("AuthServiceImpl getUserRanking ---Start---");
+		Util.validateRequiredField(userId, ErrorConstants.USER_ID_IS_REQUIRED);
+		Integer userRanking = 0;
+		UserRanking userRankingEntity = userRankingRepository.findByUserId(userId);
+		if (userRankingEntity != null) {
+			userRanking = userRankingRepository.calculateUserRanking(userId);
+		} else {
+			throw new BusinessException(DockItConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		Map<String, Object> responseObjectsMap = new HashMap<>();
+		responseObjectsMap.put("userRanking", userRanking);
+		logger.info("AuthServiceImpl getUserRanking ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}

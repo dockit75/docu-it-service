@@ -31,11 +31,13 @@ import com.docuitservice.model.Family;
 import com.docuitservice.model.Member;
 import com.docuitservice.model.Share;
 import com.docuitservice.model.User;
+import com.docuitservice.model.UserRanking;
 import com.docuitservice.repository.CategoryRepository;
 import com.docuitservice.repository.DocumentRepository;
 import com.docuitservice.repository.FamilyRepository;
 import com.docuitservice.repository.MemberRepository;
 import com.docuitservice.repository.ShareRepository;
+import com.docuitservice.repository.UserRankingRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.DocumentDetails;
 import com.docuitservice.request.SaveDocumentRequest;
@@ -82,7 +84,23 @@ public class DocumentServiceImpl implements DocumentService{
 	@Autowired
 	AmazonClient amazonClient;
 	
+	@Value("${defaultValues.insuranceDocument}")
+    private Integer insuranceDocument;
 	
+    @Value("${defaultValues.healthDocument}")
+    private Integer healthDocument;
+
+    @Value("${defaultValues.assertDocument}")
+    private Integer assertDocument;
+    
+    @Value("${defaultValues.financeDocument}")
+    private Integer financeDocument;
+    
+    @Value("${defaultValues.referralInvite}")
+    private Integer referralInvite;
+    
+    @Autowired
+	UserRankingRepository userRankingRepository;
 	    
     static final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy"); 
    
@@ -188,6 +206,7 @@ public class DocumentServiceImpl implements DocumentService{
 			}
 			if(StringUtils.hasText(categoryId)) {
 				category = categoryRepository.findById(categoryId);
+				updateUserRankingByCategory(saveDocumentRequest.getUploadedBy(), category.getId());
 			}if(null== category) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -253,6 +272,75 @@ public class DocumentServiceImpl implements DocumentService{
 				 logger.info("saveDocumentDetails --->End");
 				 return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_SAVED_SUCCESFULLY, "", 200,
 							DockItConstants.RESPONSE_SUCCESS);
+	}
+	
+	private void updateUserRankingByCategory(String userId, String categoryId) {
+		logger.info("CategoryServiceImpl updateUserRankingByCategory ---Start---");
+		UserRanking userRanking = userRankingRepository.findByUserId(userId);
+		Category category = categoryRepository.findById(categoryId);
+		if (userRanking != null && category != null) {
+			switch (category.getCategoryName()) {
+			case "Life Insurance":
+				userRanking.setInsuranceDocument(insuranceDocument);
+				break;
+			case "Health Insurance":
+				userRanking.setHealthDocument(healthDocument);
+				break;
+			case "Assets":
+				userRanking.setAssertDocument(assertDocument);
+				break;
+			case "Finance Accounts":
+				userRanking.setFinanceDocument(financeDocument);
+				break;
+			default:
+				break;
+			}
+			userRankingRepository.save(userRanking);
+		}
+		if (userRanking == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (category == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		logger.info("CategoryServiceImpl updateUserRankingByCategory ---End---");
+	}
+	
+	public boolean checkFinalDocument(String userId, String categoryId) {
+		boolean isFinalDocument = false;
+		UserRanking userRanking = userRankingRepository.findByUserId(userId);
+		Category category = categoryRepository.findById(categoryId);
+		if (userRanking != null && category != null) {
+			switch (category.getCategoryName()) {
+			case "Life Insurance":
+				userRanking.setInsuranceDocument(insuranceDocument);
+				break;
+			case "Health Insurance":
+				userRanking.setHealthDocument(healthDocument);
+				break;
+			case "Assets":
+				userRanking.setAssertDocument(assertDocument);
+				break;
+			case "Finance Accounts":
+				userRanking.setFinanceDocument(financeDocument);
+				break;
+			default:
+				break;
+			}
+			userRankingRepository.save(userRanking);
+			isFinalDocument = true;
+		}
+		if (userRanking == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (category == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		return isFinalDocument;
 	}
 	
 	public Response shareDocument(ShareDocumentRequest shareDocumentRequest) throws Exception {
@@ -728,6 +816,7 @@ public class DocumentServiceImpl implements DocumentService{
 		}
 		if (StringUtils.hasText(shareDocumentRequest.getCategoryId())) {
 			category = categoryRepository.findById(shareDocumentRequest.getCategoryId());
+			checkFinalDocument(shareDocumentRequest.getUpdatedBy(), category.getId());
 		}
 		if (null == category) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,

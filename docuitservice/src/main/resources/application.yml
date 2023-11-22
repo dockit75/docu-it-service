@@ -76,3 +76,10 @@ image:
 profile:
   upload:
     image: profile/
+
+defaultValues:
+  insuranceDocument: 20
+  healthDocument: 20
+  assertDocument: 20
+  financeDocument: 20
+  referralInvite: 20
