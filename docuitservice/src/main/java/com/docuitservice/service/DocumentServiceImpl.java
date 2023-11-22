@@ -332,14 +332,6 @@ public class DocumentServiceImpl implements DocumentService{
 			userRankingRepository.save(userRanking);
 			isFinalDocument = true;
 		}
-		if (userRanking == null) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
-		if (category == null) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
 		return isFinalDocument;
 	}
 	
@@ -815,8 +807,8 @@ public class DocumentServiceImpl implements DocumentService{
 			}
 		}
 		if (StringUtils.hasText(shareDocumentRequest.getCategoryId())) {
-			category = categoryRepository.findById(shareDocumentRequest.getCategoryId());
-			checkFinalDocument(shareDocumentRequest.getUpdatedBy(), category.getId());
+			category = categoryRepository.findById(shareDocumentRequest.getCategoryId());			
+			checkFinalDocument(shareDocumentRequest.getUpdatedBy(), category.getId());			
 		}
 		if (null == category) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,
