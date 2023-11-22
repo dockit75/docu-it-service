@@ -1,5 +1,9 @@
 package com.docuitservice.response;
 
+import java.util.List;
+
+import com.docuitservice.model.Share;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +32,24 @@ public class DocumentResponse {
 	private String updatedDate;
 
 	private Integer pageCount;
+	
+	private String documentType;
+	
+	private String uploadedByName;
+	
+	private Long documentSize;
+	
+	private String shareId;
+	
+	private String shareDocumentId;
 
+	private String shareMemberId;
+	
+	private String sharedBy;
+	
+	private String shareCreatedDate;
+	
+	private String sharedUpdatedDate;
+	
 
 }

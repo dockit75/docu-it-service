@@ -67,5 +67,8 @@ public class User {
 	
 	@Column(name = "otp_created_at")
 	private Date otpCreatedAt;
+	
+	@Column(name = "image_url", length = 255)
+	private String imageUrl;
 
 }

@@ -14,16 +14,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ShareDocumentRequest {
-		
-	private List<String> memberIds;
-	
+			
 	private String familyId;
 	
 	private String documentId;
 	
 	private String categoryId;
 	
-	private String action;
+	private List<String> revokeAccess;
+	
+	private List<String> provideAccess;
 	
 	private String documentName;
 	

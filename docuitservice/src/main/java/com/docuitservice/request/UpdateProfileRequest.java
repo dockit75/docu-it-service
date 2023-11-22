@@ -8,5 +8,6 @@ public class UpdateProfileRequest {
 	private String userId;
 	private String name;
 	private String gender;
+	private String imageUrl;
 
 }

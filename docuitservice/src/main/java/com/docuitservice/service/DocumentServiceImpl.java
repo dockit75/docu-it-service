@@ -31,11 +31,13 @@ import com.docuitservice.model.Family;
 import com.docuitservice.model.Member;
 import com.docuitservice.model.Share;
 import com.docuitservice.model.User;
+import com.docuitservice.model.UserRanking;
 import com.docuitservice.repository.CategoryRepository;
 import com.docuitservice.repository.DocumentRepository;
 import com.docuitservice.repository.FamilyRepository;
 import com.docuitservice.repository.MemberRepository;
 import com.docuitservice.repository.ShareRepository;
+import com.docuitservice.repository.UserRankingRepository;
 import com.docuitservice.repository.UserRepository;
 import com.docuitservice.request.DocumentDetails;
 import com.docuitservice.request.SaveDocumentRequest;
@@ -82,7 +84,23 @@ public class DocumentServiceImpl implements DocumentService{
 	@Autowired
 	AmazonClient amazonClient;
 	
+	@Value("${defaultValues.insuranceDocument}")
+    private Integer insuranceDocument;
 	
+    @Value("${defaultValues.healthDocument}")
+    private Integer healthDocument;
+
+    @Value("${defaultValues.assertDocument}")
+    private Integer assertDocument;
+    
+    @Value("${defaultValues.financeDocument}")
+    private Integer financeDocument;
+    
+    @Value("${defaultValues.referralInvite}")
+    private Integer referralInvite;
+    
+    @Autowired
+	UserRankingRepository userRankingRepository;
 	    
     static final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy"); 
    
@@ -152,6 +170,7 @@ public class DocumentServiceImpl implements DocumentService{
 		Family family = null;
 		Category category = null;
 		boolean memberMatch = false;
+		Member adminMember = null;
 		List<Member> sharedList = new ArrayList<>();
 		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		
@@ -187,6 +206,7 @@ public class DocumentServiceImpl implements DocumentService{
 			}
 			if(StringUtils.hasText(categoryId)) {
 				category = categoryRepository.findById(categoryId);
+				updateUserRankingByCategory(saveDocumentRequest.getUploadedBy(), category.getId());
 			}if(null== category) {
 				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -211,11 +231,17 @@ public class DocumentServiceImpl implements DocumentService{
 					}
 					docSharedList.add(sharedUser);
 				}
+				//Adding member id of the uploader Begin
+				adminMember = memberRepository.findByUserAndFamily(user, family);
+				if(null !=adminMember) {
+				docSharedList.add(adminMember.getId());
+				}
+				//Adding member id of the uploader End
 				sharedList =  memberRepository.findByIdIn(docSharedList);
-				if(sharedUsers.size()!=sharedList.size()) {
+				/*if(sharedUsers.size()!=sharedList.size()) {
 					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
 							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-				}
+				}*/
 				for(Member shareMember: sharedList) {
 					if(shareMember.getFamily().getId().equalsIgnoreCase(family.getId())) {
 						memberMatch = true;
@@ -240,7 +266,7 @@ public class DocumentServiceImpl implements DocumentService{
 				 docModel.setPageCount(documentPageCount);
 				 doc =  documentRepository.save(docModel);
 				 if(!sharedList.isEmpty()) {
-				 saveShareDetails(doc,sharedList,currentTimeStamp);
+				 saveShareDetails(doc,sharedList);
 				 }
 		}
 				 logger.info("saveDocumentDetails --->End");
@@ -248,99 +274,248 @@ public class DocumentServiceImpl implements DocumentService{
 							DockItConstants.RESPONSE_SUCCESS);
 	}
 	
+	private void updateUserRankingByCategory(String userId, String categoryId) {
+		logger.info("CategoryServiceImpl updateUserRankingByCategory ---Start---");
+		UserRanking userRanking = userRankingRepository.findByUserId(userId);
+		Category category = categoryRepository.findById(categoryId);
+		if (userRanking != null && category != null) {
+			switch (category.getCategoryName()) {
+			case "Life Insurance":
+				userRanking.setInsuranceDocument(insuranceDocument);
+				break;
+			case "Health Insurance":
+				userRanking.setHealthDocument(healthDocument);
+				break;
+			case "Assets":
+				userRanking.setAssertDocument(assertDocument);
+				break;
+			case "Finance Accounts":
+				userRanking.setFinanceDocument(financeDocument);
+				break;
+			default:
+				break;
+			}
+			userRankingRepository.save(userRanking);
+		}
+		if (userRanking == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (category == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		logger.info("CategoryServiceImpl updateUserRankingByCategory ---End---");
+	}
+	
+	public boolean checkFinalDocument(String userId, String categoryId) {
+		boolean isFinalDocument = false;
+		UserRanking userRanking = userRankingRepository.findByUserId(userId);
+		Category category = categoryRepository.findById(categoryId);
+		if (userRanking != null && category != null) {
+			switch (category.getCategoryName()) {
+			case "Life Insurance":
+				userRanking.setInsuranceDocument(insuranceDocument);
+				break;
+			case "Health Insurance":
+				userRanking.setHealthDocument(healthDocument);
+				break;
+			case "Assets":
+				userRanking.setAssertDocument(assertDocument);
+				break;
+			case "Finance Accounts":
+				userRanking.setFinanceDocument(financeDocument);
+				break;
+			default:
+				break;
+			}
+			userRankingRepository.save(userRanking);
+			isFinalDocument = true;
+		}
+		if (userRanking == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (category == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_DETAILS_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		return isFinalDocument;
+	}
+	
 	public Response shareDocument(ShareDocumentRequest shareDocumentRequest) throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("shareDocument --->Begin");
-		
-		Optional<Family> familyOpt = null; 
-		Optional<Member> memberOpt= null;
-		Optional<Document> documentOpt= null;
+
+		Optional<Family> familyOpt = null;
+		Optional<Member> memberOpt = null;
+		Optional<Document> documentOpt = null;
 		List<Member> memberList = new ArrayList<>();
 		List<Member> validMemberList = new ArrayList<>();
-		List<String> memberIds = new ArrayList<>();
+		List<String> provideAccessmemberIds = new ArrayList<>();
+		List<String> revokeAccessmemberIds = new ArrayList<>();
+		List<Member> validProvideAccessmembers = new ArrayList<>();
+		List<Member> validRevokeAccessmembers = new ArrayList<>();
+		List<Share> existingSharedList = new ArrayList<>();
 		Family family = null;
 		String familyId = null;
 		User user = null;
-		if((StringUtils.hasText(shareDocumentRequest.getCategoryId())|| StringUtils.hasText(shareDocumentRequest.getDocumentName())) && !StringUtils.hasText(shareDocumentRequest.getAction()) && !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
+		Document document = null;
+		if ((StringUtils.hasText(shareDocumentRequest.getCategoryId())
+				|| StringUtils.hasText(shareDocumentRequest.getDocumentName()))
+				&& (null == shareDocumentRequest.getProvideAccess() || (null != shareDocumentRequest.getProvideAccess()
+						&& shareDocumentRequest.getProvideAccess().isEmpty()))
+				&& (null == shareDocumentRequest.getRevokeAccess() || (null != shareDocumentRequest.getRevokeAccess()
+						&& shareDocumentRequest.getRevokeAccess().isEmpty()))
+				&& !StringUtils.hasText(shareDocumentRequest.getFamilyId())) {
 			return updateDocumentCategory(shareDocumentRequest);
-		}else {
-		//Document document =  shareDocumentRequest.getDocumentId();
-		if(null ==shareDocumentRequest.getDocumentId() || null==shareDocumentRequest.getFamilyId() || null==shareDocumentRequest.getMemberIds() || shareDocumentRequest.getMemberIds().isEmpty() || !StringUtils.hasText(shareDocumentRequest.getAction()) || !(shareDocumentRequest.getAction().equalsIgnoreCase("add") || shareDocumentRequest.getAction().equalsIgnoreCase("revoke"))) {
-			
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
-	
-		if(null !=shareDocumentRequest.getMemberIds()) {
-			for(String memberId : shareDocumentRequest.getMemberIds()) {
-				memberIds.add(memberId);
-			}
-			Iterator<String> iterator = 	memberIds.iterator();
-			memberList = memberRepository.findAllById(iteratorToIterable(iterator));
-			if(memberList.isEmpty() || memberList.size()!=memberIds.size()) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+		} else {
+			// Document document = shareDocumentRequest.getDocumentId();
+			if (null == shareDocumentRequest.getDocumentId() || null == shareDocumentRequest.getFamilyId()
+					|| ((null == shareDocumentRequest.getProvideAccess()
+							|| ((null != shareDocumentRequest.getProvideAccess()
+									&& shareDocumentRequest.getProvideAccess().isEmpty())
+									|| (null != shareDocumentRequest.getProvideAccess()
+											&& !shareDocumentRequest.getProvideAccess().isEmpty()
+											&& shareDocumentRequest.getProvideAccess().size() == 0)
+									|| (null != shareDocumentRequest.getProvideAccess()
+											&& !shareDocumentRequest.getProvideAccess().isEmpty()
+											&& shareDocumentRequest.getProvideAccess().size() > 0
+											&& !StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0)))))
+							&& (null == shareDocumentRequest.getRevokeAccess()
+									|| (null != shareDocumentRequest.getRevokeAccess()
+											&& shareDocumentRequest.getRevokeAccess().isEmpty())
+									|| (null != shareDocumentRequest.getRevokeAccess()
+											&& !shareDocumentRequest.getRevokeAccess().isEmpty()
+											&& shareDocumentRequest.getRevokeAccess().size() == 0)
+									|| (null != shareDocumentRequest.getRevokeAccess()
+											&& !shareDocumentRequest.getRevokeAccess().isEmpty()
+											&& shareDocumentRequest.getRevokeAccess().size() > 0
+											&& !StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0)))))) {
+
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_INPUT,
 						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 			}
-			for(Member members: memberList) {
-				if(members.getInviteStatus().equalsIgnoreCase("accepted") ) {
-					validMemberList.add(members);
+
+			if (null != shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty()
+					&& shareDocumentRequest.getProvideAccess().size() > 0
+					&& StringUtils.hasText(shareDocumentRequest.getProvideAccess().get(0))) {
+				for (String memberId : shareDocumentRequest.getProvideAccess()) {
+					provideAccessmemberIds.add(memberId);
 				}
-			}
-			}
-		
-		if(null !=shareDocumentRequest.getFamilyId()) {
-			familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
-			if(null ==familyOpt|| (null !=familyOpt && familyOpt.isEmpty())) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NOT_FOUND,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
-			family = familyOpt.get();
-		}
-		if(null !=shareDocumentRequest.getDocumentId()) {
-			documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
-			if(documentOpt.isEmpty()) {
-				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
-						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-			}
-		}
-		
-		if (null != family) {
-			familyId =family.getId();
-			for(Member member: memberList) {
-				if(!familyId.equalsIgnoreCase(member.getFamily().getId())) {
-					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
+				Iterator<String> iterator = provideAccessmemberIds.iterator();
+				memberList = memberRepository.findAllById(iteratorToIterable(iterator));
+				if (memberList.isEmpty() || memberList.size() != shareDocumentRequest.getProvideAccess().size()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
 							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 				}
+				for (Member members : memberList) {
+					if (members.getInviteStatus().equalsIgnoreCase("accepted")) {
+						validProvideAccessmembers.add(members);
+					}
+				}
 			}
+
+			if (null != shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty()
+					&& shareDocumentRequest.getRevokeAccess().size() > 0
+					&& StringUtils.hasText(shareDocumentRequest.getRevokeAccess().get(0))) {
+				for (String memberId : shareDocumentRequest.getRevokeAccess()) {
+					revokeAccessmemberIds.add(memberId);
+				}
+				Iterator<String> iterator = revokeAccessmemberIds.iterator();
+				memberList = memberRepository.findAllById(iteratorToIterable(iterator));
+				if (memberList.isEmpty() || memberList.size() != shareDocumentRequest.getRevokeAccess().size()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_ID_INVALID,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				for (Member members : memberList) {
+					if (members.getInviteStatus().equalsIgnoreCase("accepted")) {
+						validRevokeAccessmembers.add(members);
+					}
+				}
+			}
+			if (null != shareDocumentRequest.getDocumentId()) {
+				documentOpt = documentRepository.findById(shareDocumentRequest.getDocumentId());
+				if (documentOpt.isEmpty()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				document = documentOpt.get();
+			}
+			if (null != shareDocumentRequest.getFamilyId()) {
+				familyOpt = familyRepository.findById(shareDocumentRequest.getFamilyId());
+				if (null == familyOpt || (null != familyOpt && familyOpt.isEmpty())) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.FAMILY_NOT_FOUND,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				family = familyOpt.get();
+				if (null != document) {
+					if (null == document.getFamily()) {
+						document.setFamily(family);
+						documentRepository.save(document);
+						Member member = null;
+						member = memberRepository.findByUserAndFamily(document.getUser(), family);
+						if (null != member && !validProvideAccessmembers.contains(member)) {
+							validProvideAccessmembers.add(member);
+
+						}
+					} else {
+						if (!document.getFamily().getId().equalsIgnoreCase(family.getId())) {
+							throw new BusinessException(ErrorConstants.RESPONSE_FAIL,
+									ErrorConstants.FAMILY_CANNOT_BE_MODIFIED, ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+						}
+					}
+				}
+			}
+
+			if (null != family) {
+				familyId = family.getId();
+				for (Member member : memberList) {
+					if (!familyId.equalsIgnoreCase(member.getFamily().getId())) {
+						throw new BusinessException(ErrorConstants.RESPONSE_FAIL,
+								ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY, ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+					}
+				}
+
+			}
+
 			
+			/*if (StringUtils.hasText(shareDocumentRequest.getUpdatedBy())) {
+				user = userRepository.findById(shareDocumentRequest.getUpdatedBy());
+			}
+			if (null == user) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}
+			Member member = memberRepository.findByUserAndFamily(user, family);
+			if (null != member && !familyId.equalsIgnoreCase(member.getFamily().getId())) {
+				throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.UPDATEDBY_NOT_FOUND_IN_FAMILY,
+						ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+			}*/
+			 
+
+			if (null != shareDocumentRequest.getProvideAccess() && !shareDocumentRequest.getProvideAccess().isEmpty()
+					&& !validProvideAccessmembers.isEmpty()) {
+				/*existingSharedList = shareRepository.findAllByDocumentAndMemberIn(documentOpt.get(),validProvideAccessmembers);
+				
+				List<Share> matchedResults = existingSharedList.stream().filter(existingList -> validProvideAccessmembers.stream().anyMatch(newList->newList.getId().equalsIgnoreCase(existingList.getMember().getId()))).collect(Collectors.toList());
+				
+				if(!matchedResults.isEmpty()) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, "Document already shared to " + matchedResults.get(0).getMember().getUser().getName(),
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}*/
+				saveShareDetails(documentOpt.get(), validProvideAccessmembers);
+			}
+			if (null != shareDocumentRequest.getRevokeAccess() && !shareDocumentRequest.getRevokeAccess().isEmpty()
+					&& !validRevokeAccessmembers.isEmpty()) {
+				removeDocumentAccess(documentOpt.get(), validRevokeAccessmembers);
+			}
+
 		}
-		
-		/*if(StringUtils.hasText(shareDocumentRequest.getUpdatedBy())) {
-			user = userRepository.findById(shareDocumentRequest.getUpdatedBy());
-		}if(null==user) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_ID_IS_INVALID,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}
-		Member member = memberRepository.findByUserAndFamily(user,family);
-		if(null !=member && !familyId.equalsIgnoreCase(member.getFamily().getId())) {
-			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.UPDATEDBY_NOT_FOUND_IN_FAMILY,
-					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-		}*/
-		
-		Date currentTimeStamp = new Date(System.currentTimeMillis());
-		if(shareDocumentRequest.getAction().equalsIgnoreCase("add")) {
-			saveShareDetails(documentOpt.get(), memberList, currentTimeStamp);
-			return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_SHARED_SUCCESFULLY, "", 200,
-					DockItConstants.RESPONSE_SUCCESS);
-		}else if(shareDocumentRequest.getAction().equalsIgnoreCase("revoke")) {
-			removeDocumentAccess(documentOpt.get(), memberList,memberIds);
-			return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_REVOKED_SUCCESFULLY, "", 200,
-					DockItConstants.RESPONSE_SUCCESS);
-		}
-	}
 		logger.info("shareDocument --->End");
-		return null;
-	
+		return ResponseHelper.getSuccessResponse(DockItConstants.DOCUMENT_UPDATED_SUCCESFULLY, "", 200,
+				DockItConstants.RESPONSE_SUCCESS);
+
 	}
 
 
@@ -353,9 +528,10 @@ public class DocumentServiceImpl implements DocumentService{
             }
         };
     }
-	private void saveShareDetails(Document document, List<Member> memberList,Date currentTimeStamp) {
+	private void saveShareDetails(Document document, List<Member> memberList) {
 		logger.info("saveShareDetails --->Begin");
-		List<Share> shareList =new ArrayList<>(); 
+		List<Share> shareList =new ArrayList<>();
+		Date currentTimeStamp = new Date(System.currentTimeMillis());
 		for(Member member : memberList) {
 		Share share = new Share();
 		share.setId(UUID.randomUUID().toString());
@@ -370,7 +546,7 @@ public class DocumentServiceImpl implements DocumentService{
 	    shareRepository.saveAll(shareList);
 	    logger.info("saveShareDetails --->End");
 	}
-	private void removeDocumentAccess(Document document, List<Member> memberList, List<String> memberIds) {
+	private void removeDocumentAccess(Document document, List<Member> memberList) {
 		logger.info("saveShareDetails --->Begin");
 		List<Share> shareList =new ArrayList<>(); 
 		shareList = shareRepository.findAllByDocumentAndMemberIn(document,memberList);
@@ -417,17 +593,25 @@ public class DocumentServiceImpl implements DocumentService{
 	
 	public void deleteDocument(List<Document> docList) {
 		logger.info("deleteDocument --->Begin");
-		
-		List<String> documentIdList = new ArrayList<String>();
+		List<Document> updatedDocList = new ArrayList<Document>();
+		/*List<String> documentIdList = new ArrayList<String>();
 		documentIdList = docList.stream().map(x->x.getId()).collect(Collectors.toList());
 		documentRepository.flush();
 		if(!documentIdList.isEmpty()) {
 			documentRepository.deleteAllByIdInBatch(iteratorToIterable(documentIdList.iterator()));
+		}*/
+		for (Document Doc : docList) {
+			Doc.setFamily(null);
+			updatedDocList.add(Doc);
 		}
+		if(!updatedDocList.isEmpty()) {
+			documentRepository.saveAll(iteratorToIterable(updatedDocList.iterator()));
+		}
+		
 		logger.info("deleteDocument --->End");
 	}
 
-	@Override
+	/*@Override
 	public Response getDocumentShared(String documentId) throws Exception {
 		logger.info("getDocumentShared --->Begin");
 		Optional<Document> documentOpt= null;
@@ -455,31 +639,47 @@ public class DocumentServiceImpl implements DocumentService{
 		logger.info("getDocumentShared --->End");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentSharedDetails , 200,
 				DockItConstants.RESPONSE_SUCCESS);
-	}
+	}*/
 	
 	@Override
 	public Response getDocumentDetails(String documentId) throws Exception {
 		logger.info("getDocumentDetails --->Begin");
-		Optional<Document> documentOpt= null;
+		Optional<Document> documentOpt = null;
+		Map<String, Object> documentDtlsmap = new HashMap<String, Object>();
 		List<Share> shareList = new ArrayList<Share>();
 		List<User> documentSharedToUsers = new ArrayList<User>();
-		Map<String,Object> documentSharedDetails = new HashMap<String, Object>();
-	
-		if(!StringUtils.hasText(documentId)) {
+		Map<String, Object> documentSharedDetails = new HashMap<String, Object>();
+		List<String> memberIds = new ArrayList<>();
+
+		if (!StringUtils.hasText(documentId)) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		documentOpt = documentRepository.findById(documentId);
-		if(documentOpt.isEmpty()) {
+		if (documentOpt.isEmpty()) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.DOCUMENT_IS_INVALID,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		
-		
-		// TODO Auto-generated method stub
+		List<Share> shareDtls = shareRepository.findByDocumentId(documentId);
+		for (Share share : shareDtls) {
+	        Member member = share.getMember();
+	        if (member != null) {
+	            memberIds.add(member.getId());
+	        }
+	    }
+		documentDtlsmap.put("documentDetails", documentOpt.get());
+		documentDtlsmap.put("sharedDetails", shareDtls);
+		documentDtlsmap.put("memberIds", memberIds);
 		logger.info("getDocumentDetails --->End");
-		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentOpt.get() , 200,
+		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, documentDtlsmap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
+	}
+
+	public List<Share> getShareDetails(String documentId) throws Exception {
+		List<Share> shareDtls = new ArrayList<>();
+		shareDtls = shareRepository.findByDocumentId(documentId);
+
+		return shareDtls;
 	}
 
 
@@ -616,6 +816,7 @@ public class DocumentServiceImpl implements DocumentService{
 		}
 		if (StringUtils.hasText(shareDocumentRequest.getCategoryId())) {
 			category = categoryRepository.findById(shareDocumentRequest.getCategoryId());
+			checkFinalDocument(shareDocumentRequest.getUpdatedBy(), category.getId());
 		}
 		if (null == category) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,

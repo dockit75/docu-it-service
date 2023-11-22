@@ -38,5 +38,7 @@ public interface AuthService {
 	public Response adminLogin(@Valid LoginRequest loginRequest) throws Exception;
 
 	public Response resendOtp(String phone) throws Exception;
+
+	public Response getUserRanking(String userId) throws Exception;
 	
 }

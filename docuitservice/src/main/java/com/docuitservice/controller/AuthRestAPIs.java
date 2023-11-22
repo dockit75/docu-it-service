@@ -109,5 +109,10 @@ public class AuthRestAPIs {
 	public Response adminLogin(@RequestBody @Valid LoginRequest loginRequest) throws Exception {
 		return authService.adminLogin(loginRequest);
 	}
+	
+	@GetMapping("/getUserRanking")
+	public Response getUserRanking(@RequestParam String userId) throws Exception {
+		return authService.getUserRanking(userId);
+	}
 
 }
