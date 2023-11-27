@@ -696,7 +696,7 @@ public class FamilyServiceImpl implements FamilyService {
 		logger.info("FamilyServiceImpl getFamilyWithMembers ---Start---");
 	    Map<String, Object> responseObjectsMap = new HashMap<>();
 	    Util.validateRequiredField(adminId, ErrorConstants.ADMIN_ID_IS_REQUIRED);
-	    List<Member> memberList = memberRepository.findByUserId(adminId);
+	    List<Member> memberList = memberRepository.findByInvitedBy_Id(adminId);
 	    if (memberList == null || memberList.isEmpty()) {
 	        throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
 	                ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -706,7 +706,7 @@ public class FamilyServiceImpl implements FamilyService {
 	        FamilyMemberResponse familyMemberResponse = new FamilyMemberResponse();
 	        Family family = member.getFamily();
 	        if (family != null) {
-	            family.setCreatedBy(member.getFamily().getUser() != null ? member.getFamily().getUser().getId() : null);
+	            family.setCreatedBy(member.getFamily().getUser().getId());
 	            familyMemberResponse.setFamily(family);
 	            familyMemberResponse.setMember(member);
 	            familyAndMemberList.add(familyMemberResponse);

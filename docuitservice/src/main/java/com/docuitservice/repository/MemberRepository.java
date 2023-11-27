@@ -33,4 +33,6 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 	List<Member> findByUserIdAndInviteStatus(String adminId, String inviteAccepted);
 	
 	List<Member> findByUserAndFamilyIn(User user, List<Family> family);
+
+	List<Member> findByInvitedBy_Id(String adminId);
 }
