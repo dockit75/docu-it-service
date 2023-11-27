@@ -486,7 +486,7 @@ public class DocumentServiceImpl implements DocumentService {
 				matchedMemberList = validProvideAccessmembers.stream().filter(memberUserList::contains)
 						.collect(Collectors.toList());
 				if (null != memberUserList && !memberUserList.isEmpty() && matchedMemberList.isEmpty()) {
-					validProvideAccessmembers.add(matchedMemberList.get(0));
+					validProvideAccessmembers.add(memberUserList.get(0));
 
 				}
 				/*
