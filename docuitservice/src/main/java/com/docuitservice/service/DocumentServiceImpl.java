@@ -329,25 +329,39 @@ public class DocumentServiceImpl implements DocumentService {
 		boolean isFinalDocument = false;
 		UserRanking userRanking = userRankingRepository.findByUserId(userId);
 		Category category = categoryRepository.findById(categoryId);
+		int documentCount = documentRepository.countByUserIdAndCategoryId(userId, categoryId);
 		if (userRanking != null && category != null) {
 			switch (category.getCategoryName()) {
 			case "Life Insurance":
-				userRanking.setInsuranceDocument(insuranceDocument);
+				if (documentCount == 0) {
+					userRanking.setInsuranceDocument(0);
+					isFinalDocument = true;
+				}
 				break;
 			case "Health Insurance":
-				userRanking.setHealthDocument(healthDocument);
+				if (documentCount == 0) {
+					userRanking.setHealthDocument(0);
+					isFinalDocument = true;
+				}
 				break;
 			case "Assets":
-				userRanking.setAssertDocument(assertDocument);
+				if (documentCount == 0) {
+					userRanking.setAssertDocument(0);
+					isFinalDocument = true;
+				}
 				break;
 			case "Finance Accounts":
-				userRanking.setFinanceDocument(financeDocument);
+				if (documentCount == 0) {
+					userRanking.setFinanceDocument(0);
+					isFinalDocument = true;
+				}
 				break;
-			default:
+			default:				
 				break;
+			}			
+			if (isFinalDocument) {
+				userRankingRepository.save(userRanking);
 			}
-			userRankingRepository.save(userRanking);
-			isFinalDocument = true;
 		}
 		return isFinalDocument;
 	}
@@ -776,6 +790,7 @@ public class DocumentServiceImpl implements DocumentService {
 		documentOpt = documentRepository.findById(documentId);
 		if (!documentOpt.isPresent()) {
 			responseStatus = DockItConstants.DOCUMENT_DELETED_SUCCESFULLY;
+			checkFinalDocument(document.getUser().getId(), document.getCategory().getId());	
 		} else {
 			responseStatus = DockItConstants.DOCUMENT_DELETION_UNSUCCESFULLY;
 		}
@@ -819,7 +834,7 @@ public class DocumentServiceImpl implements DocumentService {
 		}
 		if (StringUtils.hasText(shareDocumentRequest.getCategoryId())) {
 			category = categoryRepository.findById(shareDocumentRequest.getCategoryId());
-			checkFinalDocument(shareDocumentRequest.getUpdatedBy(), category.getId());
+			updateUserRankingByCategory(shareDocumentRequest.getUpdatedBy(), category.getId());
 		}
 		if (null == category) {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.CATEGORY_IS_INVALID,

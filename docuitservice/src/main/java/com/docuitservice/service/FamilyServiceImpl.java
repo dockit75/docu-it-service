@@ -37,6 +37,7 @@ import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
 import com.docuitservice.request.MemberOperationRequest;
 import com.docuitservice.response.FamilyDetails;
+import com.docuitservice.response.FamilyMemberResponse;
 import com.docuitservice.util.DockItConstants;
 import com.docuitservice.util.ErrorConstants;
 import com.docuitservice.util.Response;
@@ -689,4 +690,31 @@ public class FamilyServiceImpl implements FamilyService {
             }
         };
     }
+
+	@Override
+	public Response getFamilyWithMembers(String adminId) throws Exception {
+		logger.info("FamilyServiceImpl getFamilyWithMembers ---Start---");
+	    Map<String, Object> responseObjectsMap = new HashMap<>();
+	    Util.validateRequiredField(adminId, ErrorConstants.ADMIN_ID_IS_REQUIRED);
+	    List<Member> memberList = memberRepository.findByUserId(adminId);
+	    if (memberList == null || memberList.isEmpty()) {
+	        throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
+	                ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+	    }
+	    List<FamilyMemberResponse> familyAndMemberList = new ArrayList<>();
+	    for (Member member : memberList) {
+	        FamilyMemberResponse familyMemberResponse = new FamilyMemberResponse();
+	        Family family = member.getFamily();
+	        if (family != null) {
+	            family.setCreatedBy(member.getFamily().getUser() != null ? member.getFamily().getUser().getId() : null);
+	            familyMemberResponse.setFamily(family);
+	            familyMemberResponse.setMember(member);
+	            familyAndMemberList.add(familyMemberResponse);
+	        }
+	    }
+	    responseObjectsMap.put("familyListWithMembers", familyAndMemberList);
+	    logger.info("FamilyServiceImpl listFamily ---End---");
+	    return ResponseHelper.getSuccessResponse(DockItConstants.RESPONSE_SUCCESS, responseObjectsMap, 200,
+	            DockItConstants.RESPONSE_SUCCESS);
+	}
 }
