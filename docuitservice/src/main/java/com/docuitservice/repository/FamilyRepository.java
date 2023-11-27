@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.docuitservice.model.Family;
+import com.docuitservice.model.Member;
 
 @Repository
 public interface FamilyRepository extends JpaRepository<Family, String> {
@@ -20,6 +21,8 @@ public interface FamilyRepository extends JpaRepository<Family, String> {
 	void deleteAllByIdInBatch(Iterable<String> ids);
 
 	List<Family> findByUserIdAndStatus(String adminId, boolean b);
+	
+	List<Family> findAllById(Iterable<String> iterator);
 	
 	/*
 	 * @Modifying

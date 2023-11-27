@@ -77,13 +77,13 @@ public class ResponseHelper {
 			documentResponse.setPageCount(document.getPageCount());
 			documentResponse.setDocumentSize(document.getDocumentSize());
 
-			if(document.getFamily() != null) {
+			/*if(document.getFamily() != null) {
 				documentResponse.setFamilyId(document.getFamily().getId());
 				documentResponse.setFamilyName(document.getFamily().getName());
 			}else {
 				documentResponse.setFamilyId(null);
 				documentResponse.setFamilyName(null);
-			}
+			}*/
 			documentResponse.setCreatedDate(document.getCreatedAt().toString());
 			documentResponse.setUpdatedDate(document.getUpdatedAt().toString());
 			documentDetailsList.add(documentResponse);

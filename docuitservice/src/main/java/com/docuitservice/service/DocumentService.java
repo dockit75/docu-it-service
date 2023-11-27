@@ -34,6 +34,6 @@ public interface DocumentService {
 	
 	public void removeDocumentAccessByMemberIds(List<String> memberIds);
 	
-	public void deleteDocumentsBasedonMemberAndFamily(List<Member> members);
+	//public void deleteDocumentsBasedonMemberAndFamily(List<Member> members);
 
 }

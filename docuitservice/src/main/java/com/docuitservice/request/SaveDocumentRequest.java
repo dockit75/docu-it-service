@@ -14,11 +14,11 @@ public class SaveDocumentRequest {
 	
 	private String categoryId;
 	
-	private String familyId;
+	//private String familyId;
 	
 	private String uploadedBy;
 		
-	private List<String> sharedMembers;
+	//private List<String> sharedMembers;
 	
 	
 }

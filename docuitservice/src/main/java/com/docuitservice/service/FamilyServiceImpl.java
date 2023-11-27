@@ -578,7 +578,7 @@ public class FamilyServiceImpl implements FamilyService {
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		documentService.removeDocumentAccessByMemberIds(memberIds);
-		documentService.deleteDocumentsBasedonMemberAndFamily(memberList);
+		//documentService.deleteDocumentsBasedonMemberAndFamily(memberList);
 		 memberRepository.flush();
 	    if(!memberIds.isEmpty()) {
 	    	//memberRepository.deleteAllByIdInBatch(iteratorToIterable(memberIds.iterator()));

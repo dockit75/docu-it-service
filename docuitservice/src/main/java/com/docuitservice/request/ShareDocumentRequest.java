@@ -15,7 +15,7 @@ import lombok.Setter;
 @Setter
 public class ShareDocumentRequest {
 			
-	private String familyId;
+	private List<String> familyId;
 	
 	private String documentId;
 	
