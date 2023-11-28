@@ -3,13 +3,14 @@ package com.docuitservice.service;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,8 @@ import com.docuitservice.request.FamilyMemberInviteRequest;
 import com.docuitservice.request.FamilyRequest;
 import com.docuitservice.request.MemberOperationRequest;
 import com.docuitservice.response.FamilyDetails;
-import com.docuitservice.response.FamilyMemberResponse;
+import com.docuitservice.response.FamilyAndMemberResponse;
+import com.docuitservice.response.MemberResponse;
 import com.docuitservice.util.DockItConstants;
 import com.docuitservice.util.ErrorConstants;
 import com.docuitservice.util.Response;
@@ -694,27 +696,45 @@ public class FamilyServiceImpl implements FamilyService {
 	@Override
 	public Response getFamilyWithMembers(String adminId) throws Exception {
 		logger.info("FamilyServiceImpl getFamilyWithMembers ---Start---");
-	    Map<String, Object> responseObjectsMap = new HashMap<>();
-	    Util.validateRequiredField(adminId, ErrorConstants.ADMIN_ID_IS_REQUIRED);
-	    List<Member> memberList = memberRepository.findByInvitedBy_Id(adminId);
-	    if (memberList == null || memberList.isEmpty()) {
-	        throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.MEMBER_NOT_FOUND_IN_FAMILY,
-	                ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
-	    }
-	    List<FamilyMemberResponse> familyAndMemberList = new ArrayList<>();
-	    for (Member member : memberList) {
-	        FamilyMemberResponse familyMemberResponse = new FamilyMemberResponse();
-	        Family family = member.getFamily();
-	        if (family != null) {
-	            family.setCreatedBy(member.getFamily().getUser().getId());
-	            familyMemberResponse.setFamily(family);
-	            familyMemberResponse.setMember(member);
-	            familyAndMemberList.add(familyMemberResponse);
-	        }
-	    }
-	    responseObjectsMap.put("familyListWithMembers", familyAndMemberList);
-	    logger.info("FamilyServiceImpl listFamily ---End---");
-	    return ResponseHelper.getSuccessResponse(DockItConstants.RESPONSE_SUCCESS, responseObjectsMap, 200,
-	            DockItConstants.RESPONSE_SUCCESS);
+		Util.validateRequiredField(adminId, ErrorConstants.ADMIN_ID_IS_REQUIRED);
+		User user = userRepository.findById(adminId);
+		if (user == null) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		List<Member> memberList = memberRepository.findByInvitedBy_IdAndInviteStatus(adminId,
+				DockItConstants.INVITE_ACCEPTED);
+		List<FamilyAndMemberResponse> familyListWithMembers = new ArrayList<>();
+		Set<String> processedFamilyIds = new HashSet<>();
+		for (Member member : memberList) {
+			Family family = member.getFamily();
+			if (family != null && !processedFamilyIds.contains(family.getId())) {
+				FamilyAndMemberResponse familyAndMemberResponseVO = new FamilyAndMemberResponse();
+				familyAndMemberResponseVO.setId(family.getId());
+				familyAndMemberResponseVO.setName(family.getName());
+				familyAndMemberResponseVO.setStatus(family.getStatus());
+				familyAndMemberResponseVO.setCreatedBy(family.getUser().getId());
+				List<MemberResponse> memberResponses = memberList.stream()
+						.filter(m -> m.getFamily().getId().equals(family.getId()))
+						.map(this::convertMemberToMemberResponse).collect(Collectors.toList());
+				familyAndMemberResponseVO.setMembersList(memberResponses);
+				familyListWithMembers.add(familyAndMemberResponseVO);
+				processedFamilyIds.add(family.getId());
+			}
+		}
+		Map<String, Object> responseMap = new HashMap<>();
+		responseMap.put("familyListWithMembers", familyListWithMembers);
+		return ResponseHelper.getSuccessResponse(DockItConstants.RESPONSE_SUCCESS, responseMap, 200,
+				DockItConstants.RESPONSE_SUCCESS);
 	}
+
+	private MemberResponse convertMemberToMemberResponse(Member member) {
+		MemberResponse memberResponse = new MemberResponse();
+		memberResponse.setId(member.getId());
+		memberResponse.setInviteStatus(member.getInviteStatus());
+		memberResponse.setStatus(member.getStatus());
+		memberResponse.setUser(member.getUser());
+		return memberResponse;
+	}
+
 }
