@@ -481,12 +481,12 @@ public class DocumentServiceImpl implements DocumentService {
 				 * if (null != document) { if (null == document.getFamily()) {
 				 * document.setFamily(family); documentRepository.save(document);
 				 */
-				Member member = null;
+				//Member member = null;
 				List<Member> memberUserList = memberRepository.findByUserAndFamilyIn(document.getUser(), familyList);
 				matchedMemberList = validProvideAccessmembers.stream().filter(memberUserList::contains)
 						.collect(Collectors.toList());
 				if (null != memberUserList && !memberUserList.isEmpty() && matchedMemberList.isEmpty()) {
-					validProvideAccessmembers.add(memberUserList.get(0));
+					validProvideAccessmembers.addAll(memberUserList);
 
 				}
 				/*
