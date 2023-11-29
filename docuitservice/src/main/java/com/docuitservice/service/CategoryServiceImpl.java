@@ -3,6 +3,7 @@ package com.docuitservice.service;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,6 +174,7 @@ public class CategoryServiceImpl implements CategoryService {
 		User user = userRepository.findById(userId);
 		Category category = categoryRepository.findById(categoryId);
 		Map<String, Object> responseObjectsMap = new HashMap<>();
+		int resultSize =0;
 		if (user == null) {
 			throw new BusinessException(DockItConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
 					DockItConstants.RESPONSE_EMPTY_DATA, 1001);
@@ -182,24 +184,28 @@ public class CategoryServiceImpl implements CategoryService {
 					DockItConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
 		List<Map<String,Object>> documents = documentRepository.findByCategoryOrderByUpdatedAtDesc(category.getId(), userId);
-        
-        responseObjectsMap.put("documentDetailsList", documentResponseMapper(documents));
-		responseObjectsMap.put("totalCount", documents.size());
+		Collection<DocumentResponse> responseOutput = documentResponseMapper(documents);
+		resultSize = responseOutput.size();
+        responseObjectsMap.put("documentDetailsList", responseOutput);
+		responseObjectsMap.put("totalCount", resultSize);
 		logger.info("CategoryServiceImpl userCategoryDocuments ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
 	}
 	
 	
-	private List<DocumentResponse> documentResponseMapper(List<Map<String,Object>> myDocumentList) {
+	private Collection<DocumentResponse> documentResponseMapper(List<Map<String,Object>> myDocumentList) {
 		// TODO Auto-generated method stub
 		logger.info("documentResponseMapper --->Begin");
-		List<DocumentResponse> docResponse= new ArrayList<>();
+		Collection<DocumentResponse> docResponse= new ArrayList<>();
+		Map<String,DocumentResponse> docResponseMap= new HashMap<>();
 		 
 		for(Map<String,Object> documentMap : myDocumentList) {
 			DocumentResponse documentResponse = documentResponseBuilder(documentMap);
-			docResponse.add(documentResponse);
+			//docResponse.add(documentResponse);
+			docResponseMap.put(documentResponse.getDocumentId(), documentResponse);
 		}
+		docResponse =  docResponseMap.values();
 		logger.info("documentResponseMapper --->End");
 		return docResponse;
 	}

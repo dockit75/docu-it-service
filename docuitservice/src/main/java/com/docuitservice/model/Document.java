@@ -45,9 +45,11 @@ public class Document {
 		@Column(name = "url")
 		private String url;
 		
-		@ManyToOne(fetch = jakarta.persistence.FetchType.EAGER)
-		@JoinColumn(name = "family_id")
-		private Family family;
+	/*
+	 * @ManyToOne(fetch = jakarta.persistence.FetchType.EAGER)
+	 * 
+	 * @JoinColumn(name = "family_id") private Family family;
+	 */
 		
 		@Column(name = "document_size")
 		private Long documentSize;

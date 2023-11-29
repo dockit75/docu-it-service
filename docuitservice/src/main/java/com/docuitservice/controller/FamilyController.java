@@ -112,4 +112,9 @@ public class FamilyController {
 		return familyService.deleteFamily(deleteFamilyRequest);
 	}
 	
+	@GetMapping("/getFamilyWithMembers")
+	public Response getFamilyWithMembers(@RequestParam String adminId) throws Exception {
+		return familyService.getFamilyWithMembers(adminId);
+	}
+
 }

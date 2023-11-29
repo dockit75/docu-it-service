@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.docuitservice.request.SaveDocumentRequest;
 import com.docuitservice.request.ShareDocumentRequest;
 import com.docuitservice.response.UploadResponse;
@@ -22,6 +23,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/document")
 public class DocumentController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
 	
 	@Autowired
 	DocumentService documentService;
@@ -77,8 +80,15 @@ public class DocumentController {
 	}*/
 	
 	@RequestMapping(value = "/updateDocument", method = RequestMethod.PUT)
-	public Response updateDocument(@RequestBody @Valid ShareDocumentRequest shareDocumentRequest) throws Exception {
-		return documentService.shareDocument(shareDocumentRequest);
+	public Response updateDocument(@RequestBody @Valid ShareDocumentRequest shareDocumentRequest) {
+		Response response = null;
+		try {
+			response = documentService.shareDocument(shareDocumentRequest);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+		}
+		return response;
 	}
 	
 
