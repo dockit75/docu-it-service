@@ -169,32 +169,32 @@
                 style="border-collapse: collapse; border: 1px solid black;">
                 <tr>
                     <td align="center" style="padding: 20px 0 30px 0;">
-                        <a href="https://seller-dev.DocuIt.com/" target="_blank"><img
-                                src="" alt="DocuIt"
+                        <a href="https://seller-dev.Dock.IT.com/" target="_blank"><img
+                                src="" alt="Dock.IT"
                                 height="25px" style="display: block;color:white" /></a>                        
                     </td>
                 </tr>
                 <tr>
                     <td style="padding: 0px 30px 0px 30px;">
                         <p><b>Hello,</b></p>
-                        <p>You are been invited to DocuIt app by <b>${invitedBy}</b>. Please register to Docuit and join <b>${invitedBy}</b>'s family</p>
-                        <p><b>Cheers,</b><br><b>The DocuIt Team</b></p>
+                        <p>You are been invited to Dock.IT app by <b>${invitedBy}</b>. Please register to Dock.IT and join <b>${invitedBy}</b>'s family</p>
+                        <p><b>Cheers,</b><br><b>The Dock.IT Team</b></p>
                     </td>
                 </tr>
                 <tr>
                    <#-- <td align="center">
                         <div style="margin: 0 auto; width: 200px">
-                            <a href="https://www.facebook.com/DocuIt/" target="_blank">
-                                <img src="https://seller-dev.DocuIt.com/assets/mail/fb.png" alt="DocuIt" height="40px"
+                            <a href="https://www.facebook.com/Dock.IT/" target="_blank">
+                                <img src="https://seller-dev.Dock.IT.com/assets/mail/fb.png" alt="Dock.IT" height="40px"
                                     style="display: block;color:white;padding:5px;float: left;" /></a>
-                            <a href="https://twitter.com/DocuIt" target="_blank"><img
-                                    src="https://seller-dev.DocuIt.com/assets/mail/twitter.png" alt="DocuIt"
+                            <a href="https://twitter.com/Dock.IT" target="_blank"><img
+                                    src="https://seller-dev.Dock.IT.com/assets/mail/twitter.png" alt="Dock.IT"
                                     height="40px" style="display: block;color:white;padding:5px;float: left;" /></a>
-                            <a href="https://www.pinterest.com/DocuIt/_saved/" target="_blank"><img
-                                    src="https://seller-dev.DocuIt.com/assets/mail/printset.png" alt="DocuIt"
+                            <a href="https://www.pinterest.com/Dock.IT/_saved/" target="_blank"><img
+                                    src="https://seller-dev.Dock.IT.com/assets/mail/printset.png" alt="Dock.IT"
                                     height="40px" style="display: block;color:white;padding:5px;float: left;" /></a>
-                            <a href="https://www.instagram.com/DocuIt/" target="_blank"><img
-                                    src="https://seller-dev.DocuIt.com/assets/mail/insta.png" alt="DocuIt" height="40px"
+                            <a href="https://www.instagram.com/Dock.IT/" target="_blank"><img
+                                    src="https://seller-dev.Dock.IT.com/assets/mail/insta.png" alt="Dock.IT" height="40px"
                                     style="display: block;color:white;padding:5px;float: left;" /></a>
                         </div>
                     </td> -->
@@ -202,9 +202,9 @@
                 <tr>
                     <td align="center" style="padding: 20px 0 30px 0;">
                         <span>
-                            <p class="footer-link footer-desc">Send with &#x2661; from DocuIt</p>
+                            <p class="footer-link footer-desc">Send with &#x2661; from Dock.IT</p>
                             <p class="footer-link footer-desc"><a style="color:#ccc;" href="#">Unsubscribe</a></p> 
-                            <p class="footer-link footer-desc">DocuIt</p>
+                            <p class="footer-link footer-desc">Dock.IT</p>
                             <!-- <p class="footer-link">12140 Wallace Woods Lane</p>
                             <p class="footer-link">Alpharetta, Georgia 30004</p>
                             <p class="footer-link">United States</p>
