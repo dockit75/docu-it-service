@@ -42,6 +42,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 			+ "FROM User u")
 	Tuple getUserAndDocumentStatisticsWithinLast30Days(@Param("thirtyDaysAgo") Date thirtyDaysAgo);
 
+	User findByEmailAndPhone(String email, String phone);
+
 	
 
 
