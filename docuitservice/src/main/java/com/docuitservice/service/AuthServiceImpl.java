@@ -685,6 +685,7 @@ public class AuthServiceImpl implements AuthService {
 					Date currentTimeStamp = new Date(System.currentTimeMillis());
 					userData.setUpdatedAt(currentTimeStamp);
 					userData.setOtp(String.valueOf(Util.getRandomNumber()));
+					userData.setOtpCreatedAt(currentTimeStamp);
 					userRepository.save(userData);
 					userService.sendVerificationCode(userData.getEmail(), userData.getOtp(), userData.getName());
 					if (userData.getPhone() != null && !userData.getPhone().isEmpty()) {
