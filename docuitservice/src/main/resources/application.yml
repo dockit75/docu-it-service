@@ -83,3 +83,9 @@ defaultValues:
   assertDocument: 20
   financeDocument: 20
   referralInvite: 20
+  
+twilio:
+  accessKey: AC51709353f06887af52acc28e7a58938f
+  secretKey: 122e5d842aaed3c41fa8857e4e73e204
+  phoneNumber: +16466817403
+

@@ -1,2 +1,2 @@
-Your DocuIt Confirmation OTP is ${otp}.Please DO NOT share this OTP with anyone.
+Your Dock.IT verification code is: ${otp}
             

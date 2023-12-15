@@ -13,6 +13,9 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 
 @Component
 public class SMSUtils {
@@ -27,9 +30,18 @@ public class SMSUtils {
 
 	@Value("${aws.sns.message.senderId}")
 	public String senderId;
+	
+	@Value("${twilio.accessKey}")
+	private String tiwlioAccessKey;
 
+	@Value("${twilio.secretKey}")
+	private String tiwlioSecretKey;
+	
+	@Value("${twilio.phoneNumber}")
+	private String tiwlioPhoneNumber;
+	
 	@SuppressWarnings("deprecation")
-	public boolean sendSMS(Map<String, Object> notificationMap) {
+	public boolean sendAWSSMS(Map<String, Object> notificationMap) {
 		try {
 			AWSCredentials awsCredentials = new BasicAWSCredentials(messageAccessKey, messageSecretKey);
 			AmazonSNSClient snsClient = new AmazonSNSClient(awsCredentials);
@@ -43,6 +55,24 @@ public class SMSUtils {
 			PublishResult result = snsClient.publish(new PublishRequest().withMessage(message)
 					.withPhoneNumber(phoneNumber).withMessageAttributes(smsAttributes));
 			logger.info("UserServiceImpl sendVerificationOTP----starts----result: "+ result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean sendSMS(Map<String, Object> notificationMap) {
+		try {
+			
+			String message = (String) notificationMap.get("message");			
+			String phoneNumber = DockItConstants.SMS_DEFAULT_COUNTRY_CODE + (String) notificationMap.get("phoneNumber");
+			Twilio.init(tiwlioAccessKey, tiwlioSecretKey);
+
+			Message.creator(new PhoneNumber(phoneNumber),
+					new PhoneNumber(tiwlioPhoneNumber),message).create();
+
+			logger.info("UserServiceImpl sendVerificationOTP----starts----result: ");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
