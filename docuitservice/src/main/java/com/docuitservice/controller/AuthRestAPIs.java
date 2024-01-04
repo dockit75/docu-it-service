@@ -42,7 +42,9 @@ public class AuthRestAPIs {
 
 	@PostMapping("/signUp")
 	public Response signUpUser(@RequestBody @Valid SignUpRequest signUpRequest) throws Exception {
-		return authService.signUpUser(signUpRequest);
+//		return authService.signUpUser(signUpRequest);
+		return authService.signUpUserRegistration(signUpRequest);
+		
 	}
 
 	@PostMapping("/verifyEmail")

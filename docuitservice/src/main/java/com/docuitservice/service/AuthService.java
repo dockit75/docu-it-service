@@ -40,5 +40,7 @@ public interface AuthService {
 	public Response resendOtp(String phone) throws Exception;
 
 	public Response getUserRanking(String userId) throws Exception;
+
+	Response signUpUserRegistration(SignUpRequest signUpRequest) throws Exception;
 	
 }

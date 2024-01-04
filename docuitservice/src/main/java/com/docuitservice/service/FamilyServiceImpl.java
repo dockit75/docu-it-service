@@ -702,22 +702,14 @@ public class FamilyServiceImpl implements FamilyService {
 			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.USER_DETAIL_NOT_FOUND,
 					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
 		}
-		List<Member> memberList = memberRepository.findByInvitedBy_IdAndInviteStatus(adminId,
+		List<Member> memberList = memberRepository.findByInvitedBy_IdOrUserIdAndInviteStatus(adminId, adminId,
 				DockItConstants.INVITE_ACCEPTED);
 		List<FamilyAndMemberResponse> familyListWithMembers = new ArrayList<>();
 		Set<String> processedFamilyIds = new HashSet<>();
 		for (Member member : memberList) {
 			Family family = member.getFamily();
 			if (family != null && !processedFamilyIds.contains(family.getId())) {
-				FamilyAndMemberResponse familyAndMemberResponseVO = new FamilyAndMemberResponse();
-				familyAndMemberResponseVO.setId(family.getId());
-				familyAndMemberResponseVO.setName(family.getName());
-				familyAndMemberResponseVO.setStatus(family.getStatus());
-				familyAndMemberResponseVO.setCreatedBy(family.getUser().getId());
-				List<MemberResponse> memberResponses = memberList.stream()
-						.filter(m -> m.getFamily().getId().equals(family.getId()))
-						.map(this::convertMemberToMemberResponse).collect(Collectors.toList());
-				familyAndMemberResponseVO.setMembersList(memberResponses);
+				FamilyAndMemberResponse familyAndMemberResponseVO = createFamilyAndMemberResponse(family);
 				familyListWithMembers.add(familyAndMemberResponseVO);
 				processedFamilyIds.add(family.getId());
 			}
@@ -728,6 +720,23 @@ public class FamilyServiceImpl implements FamilyService {
 				DockItConstants.RESPONSE_SUCCESS);
 	}
 
+	private FamilyAndMemberResponse createFamilyAndMemberResponse(Family family) {
+		List<Member> familyMembers = memberRepository.findByFamilyIdAndInviteStatus(family.getId(),
+				DockItConstants.INVITE_ACCEPTED);
+		FamilyAndMemberResponse familyAndMemberResponseVO = new FamilyAndMemberResponse();
+		List<MemberResponse> memberResponses = new ArrayList<>();
+		familyAndMemberResponseVO.setId(family.getId());
+		familyAndMemberResponseVO.setName(family.getName());
+		familyAndMemberResponseVO.setStatus(family.getStatus());
+		familyAndMemberResponseVO.setCreatedBy(family.getUser().getId());
+		for (Member familyMember : familyMembers) {
+			MemberResponse memberResponse = convertMemberToMemberResponse(familyMember);
+			memberResponses.add(memberResponse);
+		}
+		familyAndMemberResponseVO.setMembersList(memberResponses);
+		return familyAndMemberResponseVO;
+	}
+
 	private MemberResponse convertMemberToMemberResponse(Member member) {
 		MemberResponse memberResponse = new MemberResponse();
 		memberResponse.setId(member.getId());
@@ -736,5 +745,4 @@ public class FamilyServiceImpl implements FamilyService {
 		memberResponse.setUser(member.getUser());
 		return memberResponse;
 	}
-
 }

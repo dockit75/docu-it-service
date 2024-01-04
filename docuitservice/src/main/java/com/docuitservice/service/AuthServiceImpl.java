@@ -131,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
 			userRankingVO.setHealthDocument(0);
 			userRankingVO.setAssertDocument(0);
 			userRankingVO.setFinanceDocument(0);
-			userRankingVO.setReferralInvite(0);
+			userRankingVO.setReferralInvite(20);
 			userRankingRepository.save(userRankingVO);
 		}
 		logger.info("AuthServiceImpl userCreateRanking ---End---");
@@ -652,6 +652,115 @@ public class AuthServiceImpl implements AuthService {
 		logger.info("AuthServiceImpl getUserRanking ---End---");
 		return ResponseHelper.getSuccessResponse(DockItConstants.FETCH_DATA, responseObjectsMap, 200,
 				DockItConstants.RESPONSE_SUCCESS);
+	}
+	
+	@Override
+	public Response signUpUserRegistration(SignUpRequest signUpRequest) throws Exception {
+		logger.info("AuthServiceImpl signUpUserRegistration ---Start---");
+		Util.validateRequiredField(signUpRequest.getName(), ErrorConstants.NAME_IS_REQUIRED);
+		Util.validateRequiredField(signUpRequest.getEmail(), ErrorConstants.EMAIL_IS_REQUIRED);
+		Util.validateRequiredField(signUpRequest.getGender(), ErrorConstants.GENDER_IS_REQUIRED);
+		Util.validateRequiredField(signUpRequest.getPhone(), ErrorConstants.MOBILE_NUMBER_IS_REQUIRED);
+
+		if (!Util.isValidNameFormat(signUpRequest.getName())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_NAME,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (!Util.isValidPhoneNumberFormat(signUpRequest.getPhone())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_PHONE_NUMBER,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (!Util.isValidEmailIdFormat(signUpRequest.getEmail())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_EMAIL_ID,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (!Util.isValidGender(signUpRequest.getGender())) {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_GENDER,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		if (signUpRequest.getEmail() != null || signUpRequest.getPhone() != null) {
+			User userData = userRepository.findByEmailAndPhone(signUpRequest.getEmail(), signUpRequest.getPhone());
+			if (userData != null) {
+				if (!userData.getStatus().equalsIgnoreCase(DockItConstants.ACTIVE)) {
+					Date currentTimeStamp = new Date(System.currentTimeMillis());
+					userData.setUpdatedAt(currentTimeStamp);
+					userData.setOtp(String.valueOf(Util.getRandomNumber()));
+					userData.setOtpCreatedAt(currentTimeStamp);
+					userRepository.save(userData);
+					userService.sendVerificationCode(userData.getEmail(), userData.getOtp(), userData.getName());
+					if (userData.getPhone() != null && !userData.getPhone().isEmpty()) {
+						userService.sendVerificationOTP(userData.getPhone(), userData.getOtp());
+					}
+				} else {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.THIS_USER_ALREADY_EXIST,
+							ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+			} else {
+				User userSameWithPhone = userRepository.findByPhone(signUpRequest.getPhone());
+				if (userSameWithPhone != null) {
+					throw new BusinessException(ErrorConstants.RESPONSE_FAIL,
+							ErrorConstants.MOBILE_NUMBER_ALREADY_REGISTERED, ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+				}
+				Optional<User> userSameWithEmail = userRepository.findByEmail(signUpRequest.getEmail());
+				if (userSameWithEmail.isPresent()) {
+					User existingUserWithEmail = userSameWithEmail.get();
+					if (existingUserWithEmail != null) {
+						throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.EMAIL_ALREADY_EXIST,
+								ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+					}
+				}
+				User user = userRegistration(signUpRequest);
+				userRepository.save(user);
+				userService.sendVerificationCode(user.getEmail(), user.getOtp(), user.getName());
+				if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+					userService.sendVerificationOTP(user.getPhone(), user.getOtp());
+				}
+				validateExternalInviteAndAccept(user);
+				userCreateRanking(user);
+			}
+		} else {
+			throw new BusinessException(ErrorConstants.RESPONSE_FAIL, ErrorConstants.INVALID_REQUEST,
+					ErrorConstants.RESPONSE_EMPTY_DATA, 1001);
+		}
+		logger.info("AuthServiceImpl signUpUser ---End---");
+		return ResponseHelper.getSuccessResponse(DockItConstants.USER_REGISTERED_SUCCESSFULLY, "", 200,
+				DockItConstants.RESPONSE_SUCCESS);
+	}
+	
+	private User userRegistration(SignUpRequest signUpRequest) {
+		User userDetails = userRepository.findByPhone(signUpRequest.getPhone());
+		User user = new User();
+		Date currentTimeStamp = new Date(System.currentTimeMillis());
+		if (userDetails == null) {
+			user.setId(UUID.randomUUID().toString());
+		} else {
+			user.setId(userDetails.getId());
+			user.setEmail(userDetails.getEmail());
+			user.setName(userDetails.getName());
+			user.setGender(userDetails.getGender());
+			user.setCreatedAt(userDetails.getCreatedAt());
+			user.setUpdatedAt(currentTimeStamp);
+			user.setStatus(userDetails.getStatus());
+			user.setAdmin(userDetails.isAdmin());
+			user.setStatus(DockItConstants.USER_CREATED);
+			user.setDeviceId(userDetails.getDeviceId());
+			user.setAdmin(false);
+			user.setAccountVerified(false);
+			user.setOtpCreatedAt(currentTimeStamp);
+		}
+		user.setEmail(signUpRequest.getEmail());
+		user.setName(signUpRequest.getName());
+		user.setGender(signUpRequest.getGender());
+		user.setPhone(signUpRequest.getPhone());
+		user.setCreatedAt(currentTimeStamp);
+		user.setUpdatedAt(currentTimeStamp);
+		user.setStatus(DockItConstants.USER_CREATED);
+		user.setOtp(String.valueOf(Util.getRandomNumber()));
+		user.setAdmin(false);
+		user.setAccountVerified(false);
+		user.setDeviceId(signUpRequest.getDeviceId());
+		user.setOtpCreatedAt(currentTimeStamp);
+		return user;
 	}
 
 }

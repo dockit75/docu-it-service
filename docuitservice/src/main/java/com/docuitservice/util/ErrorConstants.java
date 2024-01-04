@@ -9,6 +9,8 @@ public class ErrorConstants {
 	public static final String USER_ROLE_NOT_FOUND = "User role not find";
 	public static final String USERNAME_ALREADY_EXIST = "Username is already taken";
 	public static final String EMAIL_ALREADY_EXIST = "Email id is already registered";
+	public static final String EMAIL_ALREADY_REGISTERED_WITH_ANOTHER_PHONE_NUMBER = "This email already registered with another phone number";
+	public static final String PHONE_ALREADY_REGISTERED_WITH_ANOTHER_EMAIL_ID = "This phone number already registered with another email id";
 	public static final String USER_DETAILS_NOT_FOUND = "User details not found";
 	public static final String UNABLE_TO_REGISTER_USER = "Unable to register user";
 	public static final String RESPONSE_FAIL = "FAIL";
@@ -93,4 +95,5 @@ public class ErrorConstants {
 	public static final String INVITED_BY_IS_INVALID = "Please provide valid Invited by User";
 	public static final String INVALID_ADMIN_ID = "Admin id is not valid";
 	public static final String FAMILY_CANNOT_BE_MODIFIED = "Family can not be modified for a document";
+	public static final String THIS_USER_ALREADY_EXIST = "This user details already registered";
 }
